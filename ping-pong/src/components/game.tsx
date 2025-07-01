@@ -3,7 +3,6 @@ import React, { useRef, useEffect, useState } from 'react'
 const PongGame: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
-  // Клавиши — теперь через useRef для мгновенного обновления
   const upPressed = useRef(false)
   const downPressed = useRef(false)
   const wPressed = useRef(false)
@@ -12,12 +11,9 @@ const PongGame: React.FC = () => {
   const [isRunning, setIsRunning] = useState(false)
   const isRunningRef = useRef(false)
 
-  // Кастомизация
   const [paddleSizeOption, setPaddleSizeOption] = useState<
     'small' | 'medium' | 'large'
   >('medium')
-
-  // Уровень сложности
   const [difficulty, setDifficulty] = useState<'easy' | 'hard'>('easy')
 
   const canvasWidth = 800
@@ -31,22 +27,27 @@ const PongGame: React.FC = () => {
   const paddleWidth = 10
   const ballSize = 10
 
-  // Препятствие — посередине поля (будет использоваться только в сложном режиме)
-  const obstacle = {
+  const paddleHeightRef = useRef(paddleHeightMap[paddleSizeOption])
+
+  // Препятствие — теперь в состоянии
+  const [obstacle, setObstacle] = useState({
     x: canvasWidth / 2 - 55,
     y: canvasHeight / 2 - 75,
     width: 30,
     height: 150,
+  })
+
+  const generateRandomObstacle = () => {
+    const width = 30
+    const height = 150
+    const margin = 20
+    const x = Math.random() * (canvasWidth - width - margin * 2) + margin
+    const y = Math.random() * (canvasHeight - height - margin * 2) + margin
+    return { x, y, width, height }
   }
 
-  // Храним актуальный размер ракетки в ref
-  const paddleHeightRef = useRef(paddleHeightMap[paddleSizeOption])
-
-  // Обновляем paddleHeightRef при смене опции
   useEffect(() => {
     paddleHeightRef.current = paddleHeightMap[paddleSizeOption]
-
-    // Корректируем позицию ракеток, чтобы не выйти за границы
     player1Y.current = Math.min(
       player1Y.current,
       canvasHeight - paddleHeightRef.current
@@ -62,26 +63,26 @@ const PongGame: React.FC = () => {
   const ballX = useRef(canvasWidth / 2)
   const ballY = useRef(canvasHeight / 2)
 
-  // Начальная скорость мяча
   const ballSpeedX = useRef(5 * (Math.random() > 0.5 ? 1 : -1))
   const ballSpeedY = useRef(3 * (Math.random() > 0.5 ? 1 : -1))
 
-  // Сброс мяча
+  const score1 = useRef(0)
+  const score2 = useRef(0)
+
   const resetBall = () => {
     ballX.current = canvasWidth / 2
     ballY.current = canvasHeight / 2
     ballSpeedX.current = 5 * (Math.random() > 0.5 ? 1 : -1)
     ballSpeedY.current = 3 * (Math.random() > 0.5 ? 1 : -1)
+
+    if (difficulty === 'hard') {
+      setObstacle(generateRandomObstacle())
+    }
   }
 
-  const score1 = useRef(0)
-  const score2 = useRef(0)
-
-  // Основной игровой цикл
   const update = () => {
     if (!isRunningRef.current) return
 
-    // Движение ракеток
     if (wPressed.current) player1Y.current -= 7
     if (sPressed.current) player1Y.current += 7
     player1Y.current = Math.max(
@@ -96,11 +97,9 @@ const PongGame: React.FC = () => {
       Math.min(player2Y.current, canvasHeight - paddleHeightRef.current)
     )
 
-    // Движение мяча
     ballX.current += ballSpeedX.current
     ballY.current += ballSpeedY.current
 
-    // Отскок от верхнего и нижнего края
     if (
       ballY.current - ballSize < 0 ||
       ballY.current + ballSize > canvasHeight
@@ -108,7 +107,6 @@ const PongGame: React.FC = () => {
       ballSpeedY.current *= -1
     }
 
-    // Отскок от ракеток
     if (
       ballX.current - ballSize < paddleWidth &&
       ballY.current > player1Y.current &&
@@ -127,33 +125,77 @@ const PongGame: React.FC = () => {
       ballX.current = canvasWidth - paddleWidth - ballSize
     }
 
-    // Отскок от препятствия, если включен режим hard
-    if (difficulty === 'hard') {
-      if (
-        ballX.current + ballSize > obstacle.x &&
-        ballX.current - ballSize < obstacle.x + obstacle.width &&
-        ballY.current + ballSize > obstacle.y &&
-        ballY.current - ballSize < obstacle.y + obstacle.height
-      ) {
-        // Проверяем откуда удар — по горизонтали или вертикали
-        const overlapX =
-          Math.min(ballX.current + ballSize, obstacle.x + obstacle.width) -
-          Math.max(ballX.current - ballSize, obstacle.x)
-        const overlapY =
-          Math.min(ballY.current + ballSize, obstacle.y + obstacle.height) -
-          Math.max(ballY.current - ballSize, obstacle.y)
+    // if (difficulty === 'hard') {
+    //   if (
+    //     ballX.current + ballSize > obstacle.x &&
+    //     ballX.current - ballSize < obstacle.x + obstacle.width &&
+    //     ballY.current + ballSize > obstacle.y &&
+    //     ballY.current - ballSize < obstacle.y + obstacle.height
+    //   ) {
+    //     const overlapX =
+    //       Math.min(ballX.current + ballSize, obstacle.x + obstacle.width) -
+    //       Math.max(ballX.current - ballSize, obstacle.x)
+    //     const overlapY =
+    //       Math.min(ballY.current + ballSize, obstacle.y + obstacle.height) -
+    //       Math.max(ballY.current - ballSize, obstacle.y)
 
-        if (overlapX < overlapY) {
-          // Отскок по горизонтали
+    //     if (overlapX < overlapY) {
+    //       ballSpeedX.current *= -1
+    //     } else {
+    //       ballSpeedY.current *= -1
+    //     }
+    //   }
+    // }
+
+    if (difficulty === 'hard') {
+      const ballLeft = ballX.current - ballSize
+      const ballRight = ballX.current + ballSize
+      const ballTop = ballY.current - ballSize
+      const ballBottom = ballY.current + ballSize
+
+      const obstacleLeft = obstacle.x
+      const obstacleRight = obstacle.x + obstacle.width
+      const obstacleTop = obstacle.y
+      const obstacleBottom = obstacle.y + obstacle.height
+
+      const isColliding =
+        ballRight > obstacleLeft &&
+        ballLeft < obstacleRight &&
+        ballBottom > obstacleTop &&
+        ballTop < obstacleBottom
+
+      if (isColliding) {
+        const overlapLeft = ballRight - obstacleLeft
+        const overlapRight = obstacleRight - ballLeft
+        const overlapTop = ballBottom - obstacleTop
+        const overlapBottom = obstacleBottom - ballTop
+
+        const minOverlapX = Math.min(overlapLeft, overlapRight)
+        const minOverlapY = Math.min(overlapTop, overlapBottom)
+
+        // Отскок по самой маленькой оси проникновения
+        if (minOverlapX < minOverlapY) {
+          // Горизонтальный отскок
           ballSpeedX.current *= -1
+
+          if (overlapLeft < overlapRight) {
+            ballX.current = obstacleLeft - ballSize
+          } else {
+            ballX.current = obstacleRight + ballSize
+          }
         } else {
-          // Отскок по вертикали
+          // Вертикальный отскок
           ballSpeedY.current *= -1
+
+          if (overlapTop < overlapBottom) {
+            ballY.current = obstacleTop - ballSize
+          } else {
+            ballY.current = obstacleBottom + ballSize
+          }
         }
       }
     }
 
-    // Голы
     if (ballX.current < 0) {
       score2.current += 1
       resetBall()
@@ -181,7 +223,6 @@ const PongGame: React.FC = () => {
       paddleHeightRef.current
     )
 
-    // Рисуем препятствие только если сложность hard
     if (difficulty === 'hard') {
       ctx.fillStyle = 'red'
       ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height)
@@ -237,16 +278,21 @@ const PongGame: React.FC = () => {
         <button
           onClick={() => {
             setIsRunning((prev) => {
-              isRunningRef.current = !prev
-              return !prev
+              const next = !prev
+              isRunningRef.current = next
+              return next
             })
+
+            // Рандомизируем препятствие при старте, если нужно
+            if (!isRunning && difficulty === 'hard') {
+              setObstacle(generateRandomObstacle())
+            }
           }}
           className="bg-white text-black px-6 py-2 rounded-md font-semibold shadow-md hover:bg-gray-300 transition"
         >
           {isRunning ? 'Pause' : 'Start'}
         </button>
 
-        {/* Меню кастомизации */}
         <div className="flex gap-4 items-center text-white">
           <label>
             Ракетка:
