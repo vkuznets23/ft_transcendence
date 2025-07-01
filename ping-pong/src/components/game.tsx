@@ -1,9 +1,9 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react'
 
-const CANVAS_WIDTH = 800
+const CANVAS_WIDTH = 900
 const CANVAS_HEIGHT = 600
 
-const PADDLE_WIDTH = 10
+const PADDLE_WIDTH = 15
 const BALL_SIZE = 10
 
 const PADDLE_HEIGHT_MAP = {
@@ -211,7 +211,7 @@ const PongGame: React.FC = () => {
   const drawScene = useCallback(
     (ctx: CanvasRenderingContext2D) => {
       ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
-      ctx.fillStyle = 'black'
+      ctx.fillStyle = '#1A1A1A'
       ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
 
       // Счёт
@@ -319,41 +319,34 @@ const PongGame: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-black gap-4">
-      <div className="flex gap-6 items-center">
-        <button
-          onClick={toggleRunning}
-          className="bg-white text-black px-5 py-2 rounded font-semibold hover:bg-gray-300 transition"
-        >
-          {isRunning ? 'Пауза' : 'Старт'}
-        </button>
+    <div>
+      <div>
+        <button onClick={toggleRunning}>{isRunning ? 'Пауза' : 'Старт'}</button>
 
         <div>
-          <label className="text-white mr-2">Размер ракетки:</label>
+          <label>Paddle size:</label>
           <select
             value={paddleSizeOption}
             onChange={(e) =>
               setPaddleSizeOption(e.target.value as PaddleSizeOption)
             }
             disabled={isRunning}
-            className="text-black rounded px-2 py-1"
           >
-            <option value="small">Маленькая</option>
-            <option value="medium">Средняя</option>
-            <option value="large">Большая</option>
+            <option value="small">Small</option>
+            <option value="medium">Medium</option>
+            <option value="large">Large</option>
           </select>
         </div>
 
         <div>
-          <label className="text-white mr-2">Сложность:</label>
+          <label>Difficulty level:</label>
           <select
             value={difficulty}
             onChange={(e) => setDifficulty(e.target.value as DifficultyOption)}
             disabled={isRunning}
-            className="text-black rounded px-2 py-1"
           >
-            <option value="easy">Легко</option>
-            <option value="hard">Сложно</option>
+            <option value="easy">Easy</option>
+            <option value="hard">Hard</option>
           </select>
         </div>
       </div>
@@ -362,7 +355,7 @@ const PongGame: React.FC = () => {
         ref={canvasRef}
         width={CANVAS_WIDTH}
         height={CANVAS_HEIGHT}
-        className="border border-white rounded-md"
+        style={{ border: '10px solid white', padding: '15px' }}
       />
     </div>
   )
