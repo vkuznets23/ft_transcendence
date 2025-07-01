@@ -12,10 +12,13 @@ const PongGame: React.FC = () => {
   const [isRunning, setIsRunning] = useState(false)
   const isRunningRef = useRef(false)
 
-  // Кастомизация размера ракетки
+  // Кастомизация
   const [paddleSizeOption, setPaddleSizeOption] = useState<
     'small' | 'medium' | 'large'
   >('medium')
+
+  // Уровень сложности
+  const [difficulty, setDifficulty] = useState<'easy' | 'hard'>('easy')
 
   const canvasWidth = 800
   const canvasHeight = 600
@@ -27,6 +30,14 @@ const PongGame: React.FC = () => {
   }
   const paddleWidth = 10
   const ballSize = 10
+
+  // Препятствие — посередине поля (будет использоваться только в сложном режиме)
+  const obstacle = {
+    x: canvasWidth / 2 - 55,
+    y: canvasHeight / 2 - 75,
+    width: 30,
+    height: 150,
+  }
 
   // Храним актуальный размер ракетки в ref
   const paddleHeightRef = useRef(paddleHeightMap[paddleSizeOption])
@@ -51,50 +62,24 @@ const PongGame: React.FC = () => {
   const ballX = useRef(canvasWidth / 2)
   const ballY = useRef(canvasHeight / 2)
 
-  // Начальная скорость мяча и параметры ускорения
-  const initialBallSpeed = 3
-  const maxBallSpeed = 12
-  const speedIncreaseFactor = 1.001 // Увеличение скорости на 0.1% за кадр
+  // Начальная скорость мяча
+  const ballSpeedX = useRef(5 * (Math.random() > 0.5 ? 1 : -1))
+  const ballSpeedY = useRef(3 * (Math.random() > 0.5 ? 1 : -1))
 
-  // Скорость мяча
-  const ballSpeedX = useRef(initialBallSpeed * (Math.random() > 0.5 ? 1 : -1))
-  const ballSpeedY = useRef(
-    initialBallSpeed * 0.6 * (Math.random() > 0.5 ? 1 : -1)
-  )
-
+  // Сброс мяча
   const resetBall = () => {
     ballX.current = canvasWidth / 2
     ballY.current = canvasHeight / 2
-    ballSpeedX.current = initialBallSpeed * (Math.random() > 0.5 ? 1 : -1)
-    ballSpeedY.current = initialBallSpeed * 0.6 * (Math.random() > 0.5 ? 1 : -1)
+    ballSpeedX.current = 5 * (Math.random() > 0.5 ? 1 : -1)
+    ballSpeedY.current = 3 * (Math.random() > 0.5 ? 1 : -1)
   }
 
   const score1 = useRef(0)
   const score2 = useRef(0)
 
-  const increaseSpeed = () => {
-    const speedXSign = ballSpeedX.current > 0 ? 1 : -1
-    const speedYSign = ballSpeedY.current > 0 ? 1 : -1
-
-    // Абсолютная скорость по X и Y, с ограничением max скорости
-    let speedXAbs = Math.min(
-      Math.abs(ballSpeedX.current) * speedIncreaseFactor,
-      maxBallSpeed
-    )
-    let speedYAbs = Math.min(
-      Math.abs(ballSpeedY.current) * speedIncreaseFactor,
-      maxBallSpeed * 0.6
-    )
-
-    ballSpeedX.current = speedXAbs * speedXSign
-    ballSpeedY.current = speedYAbs * speedYSign
-  }
-
-  // Основной игровой цикл — теперь использует refs для клавиш
+  // Основной игровой цикл
   const update = () => {
     if (!isRunningRef.current) return
-
-    increaseSpeed()
 
     // Движение ракеток
     if (wPressed.current) player1Y.current -= 7
@@ -129,7 +114,7 @@ const PongGame: React.FC = () => {
       ballY.current > player1Y.current &&
       ballY.current < player1Y.current + paddleHeightRef.current
     ) {
-      ballSpeedX.current *= -1
+      ballSpeedX.current *= -1.05
       ballX.current = paddleWidth + ballSize
     }
 
@@ -138,8 +123,34 @@ const PongGame: React.FC = () => {
       ballY.current > player2Y.current &&
       ballY.current < player2Y.current + paddleHeightRef.current
     ) {
-      ballSpeedX.current *= -1
+      ballSpeedX.current *= -1.05
       ballX.current = canvasWidth - paddleWidth - ballSize
+    }
+
+    // Отскок от препятствия, если включен режим hard
+    if (difficulty === 'hard') {
+      if (
+        ballX.current + ballSize > obstacle.x &&
+        ballX.current - ballSize < obstacle.x + obstacle.width &&
+        ballY.current + ballSize > obstacle.y &&
+        ballY.current - ballSize < obstacle.y + obstacle.height
+      ) {
+        // Проверяем откуда удар — по горизонтали или вертикали
+        const overlapX =
+          Math.min(ballX.current + ballSize, obstacle.x + obstacle.width) -
+          Math.max(ballX.current - ballSize, obstacle.x)
+        const overlapY =
+          Math.min(ballY.current + ballSize, obstacle.y + obstacle.height) -
+          Math.max(ballY.current - ballSize, obstacle.y)
+
+        if (overlapX < overlapY) {
+          // Отскок по горизонтали
+          ballSpeedX.current *= -1
+        } else {
+          // Отскок по вертикали
+          ballSpeedY.current *= -1
+        }
+      }
     }
 
     // Голы
@@ -170,6 +181,13 @@ const PongGame: React.FC = () => {
       paddleHeightRef.current
     )
 
+    // Рисуем препятствие только если сложность hard
+    if (difficulty === 'hard') {
+      ctx.fillStyle = 'red'
+      ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height)
+    }
+
+    ctx.fillStyle = 'white'
     ctx.beginPath()
     ctx.arc(ballX.current, ballY.current, ballSize, 0, Math.PI * 2)
     ctx.fill()
@@ -211,7 +229,7 @@ const PongGame: React.FC = () => {
       window.removeEventListener('keydown', handleKeyDown)
       window.removeEventListener('keyup', handleKeyUp)
     }
-  }, [])
+  }, [difficulty])
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-black gap-4">
@@ -240,6 +258,18 @@ const PongGame: React.FC = () => {
               <option value="small">Маленькая</option>
               <option value="medium">Средняя</option>
               <option value="large">Большая</option>
+            </select>
+          </label>
+
+          <label>
+            Сложность:
+            <select
+              value={difficulty}
+              onChange={(e) => setDifficulty(e.target.value as any)}
+              className="ml-2 text-black rounded-md px-2 py-1"
+            >
+              <option value="easy">Легко</option>
+              <option value="hard">Сложно</option>
             </select>
           </label>
         </div>
