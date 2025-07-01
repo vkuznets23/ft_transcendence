@@ -12,12 +12,9 @@ const PongGame: React.FC = () => {
   const [isRunning, setIsRunning] = useState(false)
   const isRunningRef = useRef(false)
 
-  // Кастомизация
+  // Кастомизация размера ракетки
   const [paddleSizeOption, setPaddleSizeOption] = useState<
     'small' | 'medium' | 'large'
-  >('medium')
-  const [ballSpeedOption, setBallSpeedOption] = useState<
-    'slow' | 'medium' | 'fast'
   >('medium')
 
   const canvasWidth = 800
@@ -54,44 +51,50 @@ const PongGame: React.FC = () => {
   const ballX = useRef(canvasWidth / 2)
   const ballY = useRef(canvasHeight / 2)
 
-  const ballSpeedMap = {
-    slow: 3,
-    medium: 5,
-    fast: 8,
-  }
+  // Начальная скорость мяча и параметры ускорения
+  const initialBallSpeed = 3
+  const maxBallSpeed = 12
+  const speedIncreaseFactor = 1.001 // Увеличение скорости на 0.1% за кадр
 
   // Скорость мяча
-  const ballSpeedX = useRef(
-    ballSpeedMap[ballSpeedOption] * (Math.random() > 0.5 ? 1 : -1)
-  )
+  const ballSpeedX = useRef(initialBallSpeed * (Math.random() > 0.5 ? 1 : -1))
   const ballSpeedY = useRef(
-    ballSpeedMap[ballSpeedOption] * 0.6 * (Math.random() > 0.5 ? 1 : -1)
+    initialBallSpeed * 0.6 * (Math.random() > 0.5 ? 1 : -1)
   )
-
-  // Обновляем скорость мяча при смене опции скорости
-  useEffect(() => {
-    // Изменяем только скорость, сохраняя направление
-    ballSpeedX.current =
-      ballSpeedMap[ballSpeedOption] * (ballSpeedX.current > 0 ? 1 : -1)
-    ballSpeedY.current =
-      ballSpeedMap[ballSpeedOption] * 0.6 * (ballSpeedY.current > 0 ? 1 : -1)
-  }, [ballSpeedOption])
 
   const resetBall = () => {
     ballX.current = canvasWidth / 2
     ballY.current = canvasHeight / 2
-    ballSpeedX.current =
-      ballSpeedMap[ballSpeedOption] * (Math.random() > 0.5 ? 1 : -1)
-    ballSpeedY.current =
-      ballSpeedMap[ballSpeedOption] * 0.6 * (Math.random() > 0.5 ? 1 : -1)
+    ballSpeedX.current = initialBallSpeed * (Math.random() > 0.5 ? 1 : -1)
+    ballSpeedY.current = initialBallSpeed * 0.6 * (Math.random() > 0.5 ? 1 : -1)
   }
 
   const score1 = useRef(0)
   const score2 = useRef(0)
 
+  const increaseSpeed = () => {
+    const speedXSign = ballSpeedX.current > 0 ? 1 : -1
+    const speedYSign = ballSpeedY.current > 0 ? 1 : -1
+
+    // Абсолютная скорость по X и Y, с ограничением max скорости
+    let speedXAbs = Math.min(
+      Math.abs(ballSpeedX.current) * speedIncreaseFactor,
+      maxBallSpeed
+    )
+    let speedYAbs = Math.min(
+      Math.abs(ballSpeedY.current) * speedIncreaseFactor,
+      maxBallSpeed * 0.6
+    )
+
+    ballSpeedX.current = speedXAbs * speedXSign
+    ballSpeedY.current = speedYAbs * speedYSign
+  }
+
   // Основной игровой цикл — теперь использует refs для клавиш
   const update = () => {
     if (!isRunningRef.current) return
+
+    increaseSpeed()
 
     // Движение ракеток
     if (wPressed.current) player1Y.current -= 7
@@ -237,19 +240,6 @@ const PongGame: React.FC = () => {
               <option value="small">Маленькая</option>
               <option value="medium">Средняя</option>
               <option value="large">Большая</option>
-            </select>
-          </label>
-
-          <label>
-            Скорость мяча:
-            <select
-              value={ballSpeedOption}
-              onChange={(e) => setBallSpeedOption(e.target.value as any)}
-              className="ml-2 text-black rounded-md px-2 py-1"
-            >
-              <option value="slow">Медленная</option>
-              <option value="medium">Средняя</option>
-              <option value="fast">Быстрая</option>
             </select>
           </label>
         </div>
