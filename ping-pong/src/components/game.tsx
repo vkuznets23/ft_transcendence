@@ -1,4 +1,7 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react'
+import GameSettingsModal from './TogglableModal'
+
+const MAX_SCORE = 5
 
 const CANVAS_WIDTH = 900
 const CANVAS_HEIGHT = 600
@@ -25,13 +28,16 @@ interface Obstacle {
 const generateRandomObstacle = (): Obstacle => {
   const width = 30
   const height = 150
-  const margin = 20
-  const x = Math.random() * (CANVAS_WIDTH - width - margin * 2) + margin
-  const y = Math.random() * (CANVAS_HEIGHT - height - margin * 2) + margin
+  const margin = 50
+  const x = margin + Math.random() * (CANVAS_WIDTH - width - 2 * margin)
+  const y = margin + Math.random() * (CANVAS_HEIGHT - height - 2 * margin)
   return { x, y, width, height }
 }
 
 const PongGame: React.FC = () => {
+  const [showModal, setShowModal] = useState(true)
+  const [gameOver, setGameOver] = useState(false)
+
   // --- Refs для управления состоянием игры ---
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
@@ -200,10 +206,22 @@ const PongGame: React.FC = () => {
     // Голы
     if (ballX.current < 0) {
       score2.current += 1
-      resetBall()
+      if (score2.current >= MAX_SCORE) {
+        isRunningRef.current = false
+        setIsRunning(false)
+        setGameOver(true)
+      } else {
+        resetBall()
+      }
     } else if (ballX.current > CANVAS_WIDTH) {
       score1.current += 1
-      resetBall()
+      if (score1.current >= MAX_SCORE) {
+        isRunningRef.current = false
+        setIsRunning(false)
+        setGameOver(true)
+      } else {
+        resetBall()
+      }
     }
   }, [difficulty, resetBall, checkBallObstacleCollision])
 
@@ -311,45 +329,50 @@ const PongGame: React.FC = () => {
     setIsRunning((prev) => {
       const next = !prev
       isRunningRef.current = next
-      if (next && difficulty === 'hard') {
-        setObstacle(generateRandomObstacle())
-      }
+      // if (next && difficulty === 'hard') {
+      //   setObstacle(generateRandomObstacle())
+      // }
       return next
     })
   }
 
+  const startGameFromModal = () => {
+    score1.current = 0
+    score2.current = 0
+    setGameOver(false)
+    setShowModal(false)
+    resetBall()
+    setTimeout(() => {
+      toggleRunning()
+    }, 100)
+  }
+
   return (
     <div>
-      <div>
-        <button onClick={toggleRunning}>{isRunning ? 'Пауза' : 'Старт'}</button>
+      <button onClick={toggleRunning}>
+        {isRunning ? 'Pause' : 'Continue'}
+      </button>
+      <GameSettingsModal
+        buttonText="Start the game"
+        show={showModal}
+        isRunning={isRunning}
+        paddleSizeOption={paddleSizeOption}
+        difficulty={difficulty}
+        onPaddleSizeChange={setPaddleSizeOption}
+        onDifficultyChange={setDifficulty}
+        onStart={startGameFromModal}
+      />
 
-        <div>
-          <label>Paddle size:</label>
-          <select
-            value={paddleSizeOption}
-            onChange={(e) =>
-              setPaddleSizeOption(e.target.value as PaddleSizeOption)
-            }
-            disabled={isRunning}
-          >
-            <option value="small">Small</option>
-            <option value="medium">Medium</option>
-            <option value="large">Large</option>
-          </select>
-        </div>
-
-        <div>
-          <label>Difficulty level:</label>
-          <select
-            value={difficulty}
-            onChange={(e) => setDifficulty(e.target.value as DifficultyOption)}
-            disabled={isRunning}
-          >
-            <option value="easy">Easy</option>
-            <option value="hard">Hard</option>
-          </select>
-        </div>
-      </div>
+      <GameSettingsModal
+        buttonText="Play Again"
+        show={gameOver}
+        isRunning={isRunning}
+        paddleSizeOption={paddleSizeOption}
+        difficulty={difficulty}
+        onPaddleSizeChange={setPaddleSizeOption}
+        onDifficultyChange={setDifficulty}
+        onStart={startGameFromModal}
+      />
 
       <canvas
         ref={canvasRef}
