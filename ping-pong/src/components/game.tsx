@@ -89,12 +89,14 @@ const PongGame: React.FC = () => {
 
   // Коллизия мяча с препятствием
   const checkBallObstacleCollision = useCallback(() => {
+    const currentObstacle = obstacle
+
     const ballLeft = ballX.current - BALL_SIZE
     const ballRight = ballX.current + BALL_SIZE
     const ballTop = ballY.current - BALL_SIZE
     const ballBottom = ballY.current + BALL_SIZE
 
-    const { x: ox, y: oy, width: ow, height: oh } = obstacle
+    const { x: ox, y: oy, width: ow, height: oh } = currentObstacle
     const obstacleLeft = ox
     const obstacleRight = ox + ow
     const obstacleTop = oy
@@ -286,13 +288,25 @@ const PongGame: React.FC = () => {
 
   return (
     <div className="flex flex-col items-center gap-6 p-6 min-h-screen">
-      <button
-        onClick={toggleRunning}
-        className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-md transition disabled:opacity-50 disabled:cursor-not-allowed"
-        disabled={showModal}
-      >
-        {isRunning ? 'Pause' : 'Continue'}
-      </button>
+      <div className="flex gap-4">
+        <button
+          onClick={toggleRunning}
+          className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-md transition disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={showModal}
+        >
+          {isRunning ? 'Pause' : 'Continue'}
+        </button>
+        <button
+          onClick={() => {
+            startGameFromModal()
+            setShowModal(true)
+          }}
+          className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md transition"
+          disabled={showModal}
+        >
+          Restart
+        </button>
+      </div>
 
       <GameSettingsModal
         buttonText={gameOver ? 'Play Again' : 'Start the game'}

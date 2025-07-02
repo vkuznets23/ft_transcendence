@@ -33,6 +33,7 @@ export function drawScene({
   difficulty,
   obstacle,
 }: DrawSceneParams) {
+  // Сначала очищаем экран и заливаем фон
   ctx.clearRect(0, 0, canvasWidth, canvasHeight)
   ctx.fillStyle = '#1A1A1A'
   ctx.fillRect(0, 0, canvasWidth, canvasHeight)
@@ -44,7 +45,12 @@ export function drawScene({
   ctx.fillText(`${score2}`, (canvasWidth * 3) / 4, 50)
 
   // Ракетки
+  ctx.fillStyle = 'white'
+
+  // Игрок 1 (слева)
   ctx.fillRect(0, player1Y, paddleWidth, paddleHeight)
+
+  // Игрок 2 (справа)
   ctx.fillRect(canvasWidth - paddleWidth, player2Y, paddleWidth, paddleHeight)
 
   // Препятствие
