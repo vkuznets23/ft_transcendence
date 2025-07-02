@@ -27,16 +27,19 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
   if (!show) return null
 
   return (
-    <div style={modalOverlayStyle}>
-      <div style={modalContentStyle}>
-        <div>
-          <label>Paddle size:</label>
+    <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50">
+      <div className="bg-white p-8 rounded-lg text-center min-w-[300px]">
+        <div className="mb-6">
+          <label className="block mb-2 font-medium text-gray-700">
+            Paddle size:
+          </label>
           <select
             value={paddleSizeOption}
             onChange={(e) =>
               onPaddleSizeChange(e.target.value as PaddleSizeOption)
             }
             disabled={isRunning}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
           >
             <option value="small">Small</option>
             <option value="medium">Medium</option>
@@ -44,21 +47,28 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
           </select>
         </div>
 
-        <div>
-          <label>Difficulty level:</label>
+        <div className="mb-6">
+          <label className="block mb-2 font-medium text-gray-700">
+            Difficulty level:
+          </label>
           <select
             value={difficulty}
             onChange={(e) =>
               onDifficultyChange(e.target.value as DifficultyOption)
             }
             disabled={isRunning}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
           >
             <option value="easy">Easy</option>
             <option value="hard">Hard</option>
           </select>
         </div>
 
-        <button onClick={onStart} style={startButtonStyle}>
+        <button
+          onClick={onStart}
+          disabled={isRunning}
+          className="mt-4 px-6 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
           {buttonText}
         </button>
       </div>
@@ -67,35 +77,3 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
 }
 
 export default GameSettingsModal
-
-const modalOverlayStyle: React.CSSProperties = {
-  position: 'fixed',
-  top: 0,
-  left: 0,
-  width: '100vw',
-  height: '100vh',
-  backgroundColor: 'rgba(0,0,0,0.7)',
-  display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'center',
-  zIndex: 1000,
-}
-
-const modalContentStyle: React.CSSProperties = {
-  background: '#fff',
-  padding: '2rem',
-  borderRadius: '10px',
-  textAlign: 'center',
-  minWidth: '300px',
-}
-
-const startButtonStyle: React.CSSProperties = {
-  marginTop: '1rem',
-  padding: '0.5rem 1.5rem',
-  fontSize: '1rem',
-  backgroundColor: '#1a1a1a',
-  color: 'white',
-  border: 'none',
-  borderRadius: '5px',
-  cursor: 'pointer',
-}

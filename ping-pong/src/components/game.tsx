@@ -271,10 +271,15 @@ const PongGame: React.FC = () => {
   }
 
   return (
-    <div>
-      <button onClick={toggleRunning}>
+    <div className="flex flex-col items-center gap-6 p-6 min-h-screen">
+      <button
+        onClick={toggleRunning}
+        className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-md transition disabled:opacity-50 disabled:cursor-not-allowed"
+        disabled={showModal}
+      >
         {isRunning ? 'Pause' : 'Continue'}
       </button>
+
       <GameSettingsModal
         buttonText={gameOver ? 'Play Again' : 'Start the game'}
         show={showModal || gameOver}
@@ -290,7 +295,7 @@ const PongGame: React.FC = () => {
         ref={canvasRef}
         width={CANVAS_WIDTH}
         height={CANVAS_HEIGHT}
-        style={{ border: '10px solid white', padding: '15px' }}
+        className="border-8 border-white p-4 rounded-md"
       />
     </div>
   )
