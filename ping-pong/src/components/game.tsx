@@ -12,11 +12,42 @@ import {
   MAX_SCORE,
   PADDLE_HEIGHT_MAP,
 } from '../utils/constants'
+import ControlsPanel from './ControllsPannel'
 
-type PaddleSizeOption = keyof typeof PADDLE_HEIGHT_MAP
-type DifficultyOption = 'easy' | 'hard'
+export type PaddleSizeOption = keyof typeof PADDLE_HEIGHT_MAP
+export type DifficultyOption = 'easy' | 'hard'
 
 const PongGame: React.FC = () => {
+  // sounds
+  const addPointSound = useRef<HTMLAudioElement | null>(null)
+  const gameOverSound = useRef<HTMLAudioElement | null>(null)
+  const gameStartSound = useRef<HTMLAudioElement | null>(null)
+  const pongSound = useRef<HTMLAudioElement | null>(null)
+
+  // download sounds
+  useEffect(() => {
+    addPointSound.current = new Audio('/sounds/addPoint.mp3')
+    gameStartSound.current = new Audio('/sounds/gameStart.mp3')
+    gameOverSound.current = new Audio('/sounds/gameOver.mp3')
+    pongSound.current = new Audio('/sounds/pong.mp3')
+  }, [])
+
+  const playAddPointSound = () => {
+    if (!addPointSound.current) return
+    addPointSound.current.pause()
+    addPointSound.current.currentTime = 0
+    addPointSound.current.play()
+  }
+
+  const playPongSound = () => {
+    if (!pongSound.current) return
+    pongSound.current.pause()
+    pongSound.current.currentTime = 0
+    pongSound.current.play()
+  }
+
+  ////
+
   const [showModal, setShowModal] = useState(true)
   const [gameOver, setGameOver] = useState(false)
 
@@ -120,6 +151,8 @@ const PongGame: React.FC = () => {
 
     if (minOverlapX < minOverlapY) {
       ballSpeedX.current *= -1
+      playPongSound()
+
       if (overlapLeft < overlapRight) {
         ballX.current = obstacleLeft - BALL_SIZE
       } else {
@@ -127,6 +160,8 @@ const PongGame: React.FC = () => {
       }
     } else {
       ballSpeedY.current *= -1
+      playPongSound()
+
       if (overlapTop < overlapBottom) {
         ballY.current = obstacleTop - BALL_SIZE
       } else {
@@ -165,6 +200,7 @@ const PongGame: React.FC = () => {
       ballY.current + BALL_SIZE > CANVAS_HEIGHT
     ) {
       ballSpeedY.current *= -1
+      playPongSound()
     }
 
     // Отскок от ракеток
@@ -175,6 +211,7 @@ const PongGame: React.FC = () => {
     ) {
       ballSpeedX.current *= -1.05
       ballX.current = PADDLE_WIDTH + BALL_SIZE
+      playPongSound()
     }
 
     if (
@@ -184,6 +221,7 @@ const PongGame: React.FC = () => {
     ) {
       ballSpeedX.current *= -1.05
       ballX.current = CANVAS_WIDTH - PADDLE_WIDTH - BALL_SIZE
+      playPongSound()
     }
 
     // Коллизия с препятствием (если сложно)
@@ -197,8 +235,10 @@ const PongGame: React.FC = () => {
       if (score2.current >= MAX_SCORE) {
         isRunningRef.current = false
         setIsRunning(false)
+        gameOverSound.current?.play()
         setGameOver(true)
       } else {
+        playAddPointSound()
         resetBall()
       }
     } else if (ballX.current > CANVAS_WIDTH) {
@@ -206,8 +246,10 @@ const PongGame: React.FC = () => {
       if (score1.current >= MAX_SCORE) {
         isRunningRef.current = false
         setIsRunning(false)
+        gameOverSound.current?.play()
         setGameOver(true)
       } else {
+        playAddPointSound()
         resetBall()
       }
     }
@@ -241,7 +283,7 @@ const PongGame: React.FC = () => {
         obstacle,
       })
     },
-    [difficulty, obstacle]
+    [obstacle, difficulty]
   )
 
   // main loop of the game
@@ -262,6 +304,7 @@ const PongGame: React.FC = () => {
   }, [])
 
   const startGameFromModal = () => {
+    gameStartSound.current?.play()
     score1.current = 0
     score2.current = 0
     setGameOver(false)
@@ -288,25 +331,15 @@ const PongGame: React.FC = () => {
 
   return (
     <div className="flex flex-col items-center gap-6 p-6 min-h-screen">
-      <div className="flex gap-4">
-        <button
-          onClick={toggleRunning}
-          className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-md transition disabled:opacity-50 disabled:cursor-not-allowed"
-          disabled={showModal}
-        >
-          {isRunning ? 'Pause' : 'Continue'}
-        </button>
-        <button
-          onClick={() => {
-            startGameFromModal()
-            setShowModal(true)
-          }}
-          className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md transition"
-          disabled={showModal}
-        >
-          Restart
-        </button>
-      </div>
+      <ControlsPanel
+        isRunning={isRunning}
+        onToggleRunning={toggleRunning}
+        onRestart={() => {
+          startGameFromModal()
+          setShowModal(true)
+        }}
+        disabled={showModal}
+      />
 
       <GameSettingsModal
         buttonText={gameOver ? 'Play Again' : 'Start the game'}
