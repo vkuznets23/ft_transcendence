@@ -1,5 +1,4 @@
 import { useCallback, useRef } from 'react'
-
 export const usePlayerControls = () => {
   const upPressed = useRef(false)
   const downPressed = useRef(false)
@@ -7,34 +6,34 @@ export const usePlayerControls = () => {
   const sPressed = useRef(false)
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    switch (e.key.toLowerCase()) {
-      case 'arrowup':
+    switch (e.code) {
+      case 'ArrowUp':
         upPressed.current = true
         break
-      case 'arrowdown':
+      case 'ArrowDown':
         downPressed.current = true
         break
-      case 'w':
+      case 'KeyW':
         wPressed.current = true
         break
-      case 's':
+      case 'KeyS':
         sPressed.current = true
         break
     }
   }, [])
 
   const handleKeyUp = useCallback((e: KeyboardEvent) => {
-    switch (e.key.toLowerCase()) {
-      case 'arrowup':
+    switch (e.code) {
+      case 'ArrowUp':
         upPressed.current = false
         break
-      case 'arrowdown':
+      case 'ArrowDown':
         downPressed.current = false
         break
-      case 'w':
+      case 'KeyW':
         wPressed.current = false
         break
-      case 's':
+      case 'KeyS':
         sPressed.current = false
         break
     }

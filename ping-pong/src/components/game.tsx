@@ -270,6 +270,20 @@ const PongGame: React.FC = () => {
     }, 100)
   }
 
+  useEffect(() => {
+    const handleSpaceToggle = (e: KeyboardEvent) => {
+      if (e.code === 'Space') {
+        e.preventDefault()
+        if (!showModal) toggleRunning()
+      }
+    }
+
+    window.addEventListener('keydown', handleSpaceToggle)
+    return () => {
+      window.removeEventListener('keydown', handleSpaceToggle)
+    }
+  }, [showModal, toggleRunning])
+
   return (
     <div className="flex flex-col items-center gap-6 p-6 min-h-screen">
       <button
