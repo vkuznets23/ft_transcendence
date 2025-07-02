@@ -1,51 +1,37 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react'
 import GameSettingsModal from './TogglableModal'
-
-const MAX_SCORE = 5
-
-const CANVAS_WIDTH = 900
-const CANVAS_HEIGHT = 600
-
-const PADDLE_WIDTH = 15
-const BALL_SIZE = 10
-
-const PADDLE_HEIGHT_MAP = {
-  small: 60,
-  medium: 100,
-  large: 140,
-} as const
+import { generateRandomObstacle, Obstacle } from '../utils/generateObstacle'
+import { useGameLoop } from '../hooks/useGameLoop'
+import { usePlayerControls } from '../hooks/usePlayerControls'
+import { drawScene as externalDrawScene } from '../utils/drawScene'
+import {
+  CANVAS_WIDTH,
+  CANVAS_HEIGHT,
+  PADDLE_WIDTH,
+  BALL_SIZE,
+  MAX_SCORE,
+  PADDLE_HEIGHT_MAP,
+} from '../utils/constants'
 
 type PaddleSizeOption = keyof typeof PADDLE_HEIGHT_MAP
 type DifficultyOption = 'easy' | 'hard'
-
-interface Obstacle {
-  x: number
-  y: number
-  width: number
-  height: number
-}
-
-const generateRandomObstacle = (): Obstacle => {
-  const width = 30
-  const height = 150
-  const margin = 50
-  const x = margin + Math.random() * (CANVAS_WIDTH - width - 2 * margin)
-  const y = margin + Math.random() * (CANVAS_HEIGHT - height - 2 * margin)
-  return { x, y, width, height }
-}
 
 const PongGame: React.FC = () => {
   const [showModal, setShowModal] = useState(true)
   const [gameOver, setGameOver] = useState(false)
 
   // --- Refs для управления состоянием игры ---
-  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const canvasRef = useRef<HTMLCanvasElement | null>(null)
 
   // Клавиши для игроков
-  const upPressed = useRef(false)
-  const downPressed = useRef(false)
-  const wPressed = useRef(false)
-  const sPressed = useRef(false)
+  const {
+    upPressed,
+    downPressed,
+    wPressed,
+    sPressed,
+    handleKeyDown,
+    handleKeyUp,
+  } = usePlayerControls()
 
   const isRunningRef = useRef(false)
 
@@ -68,7 +54,7 @@ const PongGame: React.FC = () => {
     useState<PaddleSizeOption>('medium')
   const [difficulty, setDifficulty] = useState<DifficultyOption>('easy')
   const [obstacle, setObstacle] = useState<Obstacle>(() =>
-    generateRandomObstacle()
+    generateRandomObstacle(CANVAS_WIDTH, CANVAS_HEIGHT)
   )
 
   // Текущий размер ракетки
@@ -97,7 +83,7 @@ const PongGame: React.FC = () => {
     ballSpeedY.current = 3 * (Math.random() > 0.5 ? 1 : -1)
 
     if (difficulty === 'hard') {
-      setObstacle(generateRandomObstacle())
+      setObstacle(generateRandomObstacle(CANVAS_WIDTH, CANVAS_HEIGHT))
     }
   }, [difficulty])
 
@@ -223,118 +209,55 @@ const PongGame: React.FC = () => {
         resetBall()
       }
     }
-  }, [difficulty, resetBall, checkBallObstacleCollision])
+  }, [
+    wPressed,
+    sPressed,
+    upPressed,
+    downPressed,
+    difficulty,
+    checkBallObstacleCollision,
+    resetBall,
+  ])
 
   // Рисуем сцену
   const drawScene = useCallback(
     (ctx: CanvasRenderingContext2D) => {
-      ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
-      ctx.fillStyle = '#1A1A1A'
-      ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
-
-      // Счёт
-      ctx.fillStyle = 'white'
-      ctx.font = '48px sans-serif'
-      ctx.fillText(`${score1.current}`, CANVAS_WIDTH / 4, 50)
-      ctx.fillText(`${score2.current}`, (CANVAS_WIDTH * 3) / 4, 50)
-
-      // Ракетки
-      ctx.fillRect(0, player1Y.current, PADDLE_WIDTH, paddleHeightRef.current)
-      ctx.fillRect(
-        CANVAS_WIDTH - PADDLE_WIDTH,
-        player2Y.current,
-        PADDLE_WIDTH,
-        paddleHeightRef.current
-      )
-
-      // Препятствие
-      if (difficulty === 'hard') {
-        ctx.fillStyle = 'red'
-        ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height)
-      }
-
-      // Мяч
-      ctx.fillStyle = 'white'
-      ctx.beginPath()
-      ctx.arc(ballX.current, ballY.current, BALL_SIZE, 0, Math.PI * 2)
-      ctx.fill()
+      externalDrawScene({
+        ctx,
+        canvasWidth: CANVAS_WIDTH,
+        canvasHeight: CANVAS_HEIGHT,
+        paddleWidth: PADDLE_WIDTH,
+        paddleHeight: paddleHeightRef.current,
+        ballSize: BALL_SIZE,
+        score1: score1.current,
+        score2: score2.current,
+        player1Y: player1Y.current,
+        player2Y: player2Y.current,
+        ballX: ballX.current,
+        ballY: ballY.current,
+        difficulty,
+        obstacle,
+      })
     },
     [difficulty, obstacle]
   )
 
-  // Обработчики нажатия клавиш
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    switch (e.key.toLowerCase()) {
-      case 'arrowup':
-        upPressed.current = true
-        break
-      case 'arrowdown':
-        downPressed.current = true
-        break
-      case 'w':
-        wPressed.current = true
-        break
-      case 's':
-        sPressed.current = true
-        break
-    }
-  }, [])
-
-  const handleKeyUp = useCallback((e: KeyboardEvent) => {
-    switch (e.key.toLowerCase()) {
-      case 'arrowup':
-        upPressed.current = false
-        break
-      case 'arrowdown':
-        downPressed.current = false
-        break
-      case 'w':
-        wPressed.current = false
-        break
-      case 's':
-        sPressed.current = false
-        break
-    }
-  }, [])
-
-  // Основной цикл рендера и обновления
-  useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-
-    window.addEventListener('keydown', handleKeyDown)
-    window.addEventListener('keyup', handleKeyUp)
-
-    let animationFrameId: number
-
-    const gameLoop = () => {
-      updatePositions()
-      drawScene(ctx)
-      animationFrameId = requestAnimationFrame(gameLoop)
-    }
-
-    gameLoop()
-
-    return () => {
-      cancelAnimationFrame(animationFrameId)
-      window.removeEventListener('keydown', handleKeyDown)
-      window.removeEventListener('keyup', handleKeyUp)
-    }
-  }, [handleKeyDown, handleKeyUp, updatePositions, drawScene])
+  // main loop of the game
+  useGameLoop({
+    canvasRef,
+    isRunningRef,
+    drawScene,
+    updatePositions,
+    handleKeyDown,
+    handleKeyUp,
+  })
 
   // Кнопка Старт/Пауза
-  const toggleRunning = () => {
-    setIsRunning((prev) => {
-      const next = !prev
-      isRunningRef.current = next
-      // if (next && difficulty === 'hard') {
-      //   setObstacle(generateRandomObstacle())
-      // }
-      return next
-    })
-  }
+  const toggleRunning = useCallback(() => {
+    const next = !isRunningRef.current
+    isRunningRef.current = next
+    setIsRunning(next)
+  }, [])
 
   const startGameFromModal = () => {
     score1.current = 0
@@ -353,19 +276,8 @@ const PongGame: React.FC = () => {
         {isRunning ? 'Pause' : 'Continue'}
       </button>
       <GameSettingsModal
-        buttonText="Start the game"
-        show={showModal}
-        isRunning={isRunning}
-        paddleSizeOption={paddleSizeOption}
-        difficulty={difficulty}
-        onPaddleSizeChange={setPaddleSizeOption}
-        onDifficultyChange={setDifficulty}
-        onStart={startGameFromModal}
-      />
-
-      <GameSettingsModal
-        buttonText="Play Again"
-        show={gameOver}
+        buttonText={gameOver ? 'Play Again' : 'Start the game'}
+        show={showModal || gameOver}
         isRunning={isRunning}
         paddleSizeOption={paddleSizeOption}
         difficulty={difficulty}
