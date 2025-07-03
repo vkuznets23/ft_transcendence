@@ -10,8 +10,8 @@ export const generateRandomObstacle = (
   CANVAS_HEIGHT: number
 ): Obstacle => {
   const size = 80
-  const margin = 50
-  const x = margin + Math.random() * (CANVAS_WIDTH - size - 2 * margin)
-  const y = margin + Math.random() * (CANVAS_HEIGHT - size - 2 * margin)
+  const margin = 10
+  const x = margin + Math.random() * (CANVAS_WIDTH - size - margin * 2)
+  const y = margin + Math.random() * (CANVAS_HEIGHT - size - margin * 2)
   return { x, y, width: size, height: size }
 }
