@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useRef, useEffect, useState, useCallback } from 'react'
 import GameSettingsModal from './TogglableModal'
 import { generateRandomObstacle, Obstacle } from '../utils/generateObstacle'
@@ -13,43 +14,17 @@ import {
   PADDLE_HEIGHT_MAP,
 } from '../utils/constants'
 import ControlsPanel from './ControllsPannel'
+import { resetBall } from '../utils/resetBall'
+import { useGameSounds } from '../hooks/useGameSounds'
 
 export type PaddleSizeOption = keyof typeof PADDLE_HEIGHT_MAP
 export type DifficultyOption = 'easy' | 'hard'
 
 const PongGame: React.FC = () => {
-  // sounds
-  const addPointSound = useRef<HTMLAudioElement | null>(null)
-  const gameOverSound = useRef<HTMLAudioElement | null>(null)
-  const gameStartSound = useRef<HTMLAudioElement | null>(null)
-  const pongSound = useRef<HTMLAudioElement | null>(null)
-
-  // download sounds
-  useEffect(() => {
-    addPointSound.current = new Audio('/sounds/addPoint.mp3')
-    gameStartSound.current = new Audio('/sounds/gameStart.mp3')
-    gameOverSound.current = new Audio('/sounds/gameOver.mp3')
-    pongSound.current = new Audio('/sounds/pong.mp3')
-  }, [])
-
-  const playAddPointSound = () => {
-    if (!addPointSound.current) return
-    addPointSound.current.pause()
-    addPointSound.current.currentTime = 0
-    addPointSound.current.play()
-  }
-
-  const playPongSound = () => {
-    if (!pongSound.current) return
-    pongSound.current.pause()
-    pongSound.current.currentTime = 0
-    pongSound.current.play()
-  }
-
-  ////
-
   const [showModal, setShowModal] = useState(true)
   const [gameOver, setGameOver] = useState(false)
+  const { playAddPoint, playGameOver, playGameStart, playPong } =
+    useGameSounds()
 
   // --- Refs для управления состоянием игры ---
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
@@ -107,16 +82,20 @@ const PongGame: React.FC = () => {
   // --- Основная логика ---
 
   // Сброс мяча в центр + рандомная скорость
-  const resetBall = useCallback(() => {
-    ballX.current = CANVAS_WIDTH / 2
-    ballY.current = CANVAS_HEIGHT / 2
-    ballSpeedX.current = 5 * (Math.random() > 0.5 ? 1 : -1)
-    ballSpeedY.current = 3 * (Math.random() > 0.5 ? 1 : -1)
-
-    if (difficulty === 'hard') {
-      setObstacle(generateRandomObstacle(CANVAS_WIDTH, CANVAS_HEIGHT))
-    }
-  }, [difficulty])
+  const onResetBall = useCallback(
+    (isRestart = false) => {
+      resetBall(
+        ballX,
+        ballY,
+        ballSpeedX,
+        ballSpeedY,
+        difficulty,
+        setObstacle,
+        isRestart
+      )
+    },
+    [difficulty, setObstacle]
+  )
 
   // Коллизия мяча с препятствием
   const checkBallObstacleCollision = useCallback(() => {
@@ -151,7 +130,7 @@ const PongGame: React.FC = () => {
 
     if (minOverlapX < minOverlapY) {
       ballSpeedX.current *= -1
-      playPongSound()
+      playPong()
 
       if (overlapLeft < overlapRight) {
         ballX.current = obstacleLeft - BALL_SIZE
@@ -160,7 +139,7 @@ const PongGame: React.FC = () => {
       }
     } else {
       ballSpeedY.current *= -1
-      playPongSound()
+      playPong()
 
       if (overlapTop < overlapBottom) {
         ballY.current = obstacleTop - BALL_SIZE
@@ -200,7 +179,7 @@ const PongGame: React.FC = () => {
       ballY.current + BALL_SIZE > CANVAS_HEIGHT
     ) {
       ballSpeedY.current *= -1
-      playPongSound()
+      playPong()
     }
 
     // Отскок от ракеток
@@ -211,7 +190,7 @@ const PongGame: React.FC = () => {
     ) {
       ballSpeedX.current *= -1.05
       ballX.current = PADDLE_WIDTH + BALL_SIZE
-      playPongSound()
+      playPong()
     }
 
     if (
@@ -221,7 +200,7 @@ const PongGame: React.FC = () => {
     ) {
       ballSpeedX.current *= -1.05
       ballX.current = CANVAS_WIDTH - PADDLE_WIDTH - BALL_SIZE
-      playPongSound()
+      playPong()
     }
 
     // Коллизия с препятствием (если сложно)
@@ -235,22 +214,22 @@ const PongGame: React.FC = () => {
       if (score2.current >= MAX_SCORE) {
         isRunningRef.current = false
         setIsRunning(false)
-        gameOverSound.current?.play()
+        playGameOver()
         setGameOver(true)
       } else {
-        playAddPointSound()
-        resetBall()
+        playAddPoint()
+        onResetBall()
       }
     } else if (ballX.current > CANVAS_WIDTH) {
       score1.current += 1
       if (score1.current >= MAX_SCORE) {
         isRunningRef.current = false
         setIsRunning(false)
-        gameOverSound.current?.play()
+        playGameOver()
         setGameOver(true)
       } else {
-        playAddPointSound()
-        resetBall()
+        playAddPoint()
+        onResetBall()
       }
     }
   }, [
@@ -304,12 +283,12 @@ const PongGame: React.FC = () => {
   }, [])
 
   const startGameFromModal = () => {
-    gameStartSound.current?.play()
+    playGameStart()
     score1.current = 0
     score2.current = 0
     setGameOver(false)
     setShowModal(false)
-    resetBall()
+    onResetBall(true)
     setTimeout(() => {
       toggleRunning()
     }, 100)
@@ -335,7 +314,9 @@ const PongGame: React.FC = () => {
         isRunning={isRunning}
         onToggleRunning={toggleRunning}
         onRestart={() => {
-          startGameFromModal()
+          isRunningRef.current = false
+          setIsRunning(false)
+          setGameOver(false)
           setShowModal(true)
         }}
         disabled={showModal}
@@ -356,7 +337,7 @@ const PongGame: React.FC = () => {
         ref={canvasRef}
         width={CANVAS_WIDTH}
         height={CANVAS_HEIGHT}
-        className="border-8 border-white p-4 rounded-md"
+        className="border-8 border-white  rounded-md"
       />
     </div>
   )

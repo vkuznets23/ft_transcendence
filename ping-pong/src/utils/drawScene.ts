@@ -17,6 +17,8 @@ interface DrawSceneParams {
   obstacle?: Obstacle
 }
 
+const paddleOffset = 10
+
 export function drawScene({
   ctx,
   canvasWidth,
@@ -48,10 +50,17 @@ export function drawScene({
   ctx.fillStyle = 'white'
 
   // Игрок 1 (слева)
-  ctx.fillRect(0, player1Y, paddleWidth, paddleHeight)
+  // ctx.fillRect(0, player1Y, paddleWidth, paddleHeight)
+  ctx.fillRect(paddleOffset, player1Y, paddleWidth, paddleHeight)
 
   // Игрок 2 (справа)
-  ctx.fillRect(canvasWidth - paddleWidth, player2Y, paddleWidth, paddleHeight)
+  // ctx.fillRect(canvasWidth - paddleWidth, player2Y, paddleWidth, paddleHeight)
+  ctx.fillRect(
+    canvasWidth - paddleWidth - paddleOffset,
+    player2Y,
+    paddleWidth,
+    paddleHeight
+  )
 
   // Препятствие
   if (difficulty === 'hard' && obstacle) {

@@ -1,9 +1,10 @@
-import React, { useRef, useCallback, useState } from 'react'
+import React, { useRef, useCallback, useState, useEffect } from 'react'
 import {
   CANVAS_WIDTH,
   CANVAS_HEIGHT,
   PADDLE_WIDTH,
   BALL_SIZE,
+  MAX_SCORE,
   PADDLE_HEIGHT_MAP,
 } from '../utils/constants'
 import { Obstacle, generateRandomObstacle } from '../utils/generateObstacle'
@@ -13,7 +14,6 @@ import { drawVerticalScene } from '../utils/drawVerticalScene'
 import ControlsPanel from './ControllsPannel'
 import GameSettingsModal from './TogglableModal'
 import { DifficultyOption, PaddleSizeOption } from './game'
-import { checkBallObstacleCollision } from '../utils/collision'
 
 const VERTICAL_CANVAS_WIDTH = CANVAS_HEIGHT
 const VERTICAL_CANVAS_HEIGHT = CANVAS_WIDTH
@@ -27,7 +27,9 @@ const VerticalPongGame: React.FC = () => {
   const [paddleSizeOption, setPaddleSizeOption] =
     useState<PaddleSizeOption>('medium')
   const [difficulty, setDifficulty] = useState<DifficultyOption>('easy')
-  const [obstacle, setObstacle] = useState<Obstacle | null>(null)
+  const [obstacle, setObstacle] = useState<Obstacle>(() =>
+    generateRandomObstacle(CANVAS_WIDTH, CANVAS_HEIGHT)
+  )
 
   const paddleWidth = PADDLE_HEIGHT_MAP[paddleSizeOption]
 
@@ -38,6 +40,8 @@ const VerticalPongGame: React.FC = () => {
     isRunningRef.current = next
     setIsRunning(next)
   }, [])
+
+  console.log('Generated obstacle:', obstacle)
 
   const player1X = useRef(VERTICAL_CANVAS_WIDTH / 2)
   const player2X = useRef(VERTICAL_CANVAS_WIDTH / 2)
@@ -53,12 +57,30 @@ const VerticalPongGame: React.FC = () => {
 
   const { player1TouchX, player2TouchX } = usePlayerTouchControls(canvasRef)
 
+  const paddleHeightRef = useRef(PADDLE_HEIGHT_MAP[paddleSizeOption])
+
+  useEffect(() => {
+    paddleHeightRef.current = PADDLE_HEIGHT_MAP[paddleSizeOption]
+    player1X.current = Math.min(
+      player1X.current,
+      CANVAS_HEIGHT - paddleHeightRef.current
+    )
+    player2X.current = Math.min(
+      player2X.current,
+      CANVAS_HEIGHT - paddleHeightRef.current
+    )
+  }, [paddleSizeOption])
+
   const resetBall = useCallback(() => {
     ballX.current = VERTICAL_CANVAS_WIDTH / 2
     ballY.current = VERTICAL_CANVAS_HEIGHT / 2
     ballSpeedX.current = 3 * (Math.random() > 0.5 ? 1 : -1)
     ballSpeedY.current = 5 * (Math.random() > 0.5 ? 1 : -1)
-  }, [])
+
+    if (difficulty === 'hard') {
+      setObstacle(generateRandomObstacle(CANVAS_WIDTH, CANVAS_HEIGHT))
+    }
+  }, [difficulty])
 
   const startGameFromModal = () => {
     score1.current = 0
@@ -66,19 +88,63 @@ const VerticalPongGame: React.FC = () => {
     setGameOver(false)
     setShowModal(false)
     resetBall()
-    if (difficulty === 'hard') {
-      setObstacle(
-        generateRandomObstacle(VERTICAL_CANVAS_WIDTH, VERTICAL_CANVAS_HEIGHT)
-      )
-    } else {
-      setObstacle(null)
-    }
     setTimeout(() => {
       toggleRunning()
     }, 100)
   }
 
+  const checkBallObstacleCollision = useCallback(() => {
+    const currentObstacle = obstacle
+
+    const ballLeft = ballX.current - BALL_SIZE
+    const ballRight = ballX.current + BALL_SIZE
+    const ballTop = ballY.current - BALL_SIZE
+    const ballBottom = ballY.current + BALL_SIZE
+
+    const { x: ox, y: oy, width: ow, height: oh } = currentObstacle
+    const obstacleLeft = ox
+    const obstacleRight = ox + ow
+    const obstacleTop = oy
+    const obstacleBottom = oy + oh
+
+    const isColliding =
+      ballRight > obstacleLeft &&
+      ballLeft < obstacleRight &&
+      ballBottom > obstacleTop &&
+      ballTop < obstacleBottom
+
+    if (!isColliding) return
+
+    const overlapLeft = ballRight - obstacleLeft
+    const overlapRight = obstacleRight - ballLeft
+    const overlapTop = ballBottom - obstacleTop
+    const overlapBottom = obstacleBottom - ballTop
+
+    const minOverlapX = Math.min(overlapLeft, overlapRight)
+    const minOverlapY = Math.min(overlapTop, overlapBottom)
+
+    if (minOverlapX < minOverlapY) {
+      ballSpeedX.current *= -1
+
+      if (overlapLeft < overlapRight) {
+        ballX.current = obstacleLeft - BALL_SIZE
+      } else {
+        ballX.current = obstacleRight + BALL_SIZE
+      }
+    } else {
+      ballSpeedY.current *= -1
+
+      if (overlapTop < overlapBottom) {
+        ballY.current = obstacleTop - BALL_SIZE
+      } else {
+        ballY.current = obstacleBottom + BALL_SIZE
+      }
+    }
+  }, [obstacle])
+
   const updatePositions = useCallback(() => {
+    if (!isRunningRef.current) return
+
     if (player1TouchX.current !== null) {
       player1X.current = Math.min(
         Math.max(player1TouchX.current - paddleWidth / 2, 0),
@@ -122,40 +188,36 @@ const VerticalPongGame: React.FC = () => {
     }
 
     // ✅ Препятствие (если режим hard)
-    if (difficulty === 'hard' && obstacle) {
-      const collided = checkBallObstacleCollision({
-        ballX: ballX.current,
-        ballY: ballY.current,
-        ballRadius: BALL_SIZE,
-        obstacle,
-      })
-
-      if (collided) {
-        ballSpeedX.current *= -1
-        ballSpeedY.current *= -1
-      }
+    if (difficulty === 'hard') {
+      checkBallObstacleCollision()
     }
 
     if (ballY.current < 0) {
       score2.current += 1
-      resetBall()
+      if (score2.current >= MAX_SCORE) {
+        isRunningRef.current = false
+        setIsRunning(false)
+        setGameOver(true)
+      } else {
+        resetBall()
+      }
     } else if (ballY.current > VERTICAL_CANVAS_HEIGHT) {
       score1.current += 1
-      resetBall()
-    }
-
-    if (score1.current >= 5 || score2.current >= 5) {
-      setGameOver(true)
-      isRunningRef.current = false
-      setIsRunning(false)
+      if (score1.current >= MAX_SCORE) {
+        isRunningRef.current = false
+        setIsRunning(false)
+        setGameOver(true)
+      } else {
+        resetBall()
+      }
     }
   }, [
     player1TouchX,
     player2TouchX,
     paddleWidth,
-    resetBall,
-    obstacle,
     difficulty,
+    checkBallObstacleCollision,
+    resetBall,
   ])
 
   const drawScene = useCallback(
@@ -172,10 +234,11 @@ const VerticalPongGame: React.FC = () => {
         player2X: player2X.current,
         ballX: ballX.current,
         ballY: ballY.current,
+        difficulty,
         obstacle,
       })
     },
-    [paddleWidth, obstacle]
+    [paddleWidth, difficulty, obstacle]
   )
 
   useGameLoop({
