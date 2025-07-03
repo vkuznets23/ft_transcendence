@@ -26,12 +26,35 @@ const VerticalPongGame: React.FC = () => {
   const [gameOver, setGameOver] = useState(false)
   const { playAddPoint, playGameOver, playGameStart, playPong } =
     useGameSounds()
+  const [canvasSize, setCanvasSize] = useState({
+    width: VERTICAL_CANVAS_WIDTH,
+    height: VERTICAL_CANVAS_HEIGHT,
+  })
+
+  useEffect(() => {
+    const handleResize = () => {
+      const screenWidth = window.innerWidth
+
+      // Максимальный размер канваса (ориентирован по ширине)
+      const width = Math.min(screenWidth - 32, VERTICAL_CANVAS_WIDTH) - 10
+      const height = (VERTICAL_CANVAS_HEIGHT / VERTICAL_CANVAS_WIDTH) * width
+
+      setCanvasSize({ width, height })
+    }
+
+    handleResize() // вызываем сразу
+    window.addEventListener('resize', handleResize)
+
+    return () => {
+      window.removeEventListener('resize', handleResize)
+    }
+  }, [])
 
   const [paddleSizeOption, setPaddleSizeOption] =
     useState<PaddleSizeOption>('medium')
   const [difficulty, setDifficulty] = useState<DifficultyOption>('easy')
   const [obstacle, setObstacle] = useState<Obstacle>(() =>
-    generateRandomObstacle(VERTICAL_CANVAS_WIDTH, VERTICAL_CANVAS_HEIGHT)
+    generateRandomObstacle(canvasSize.width, canvasSize.height)
   )
 
   const paddleWidth = PADDLE_HEIGHT_MAP[paddleSizeOption]
@@ -44,11 +67,11 @@ const VerticalPongGame: React.FC = () => {
     setIsRunning(next)
   }, [])
 
-  const player1X = useRef(VERTICAL_CANVAS_WIDTH / 2)
-  const player2X = useRef(VERTICAL_CANVAS_WIDTH / 2)
+  const player1X = useRef(canvasSize.width / 2)
+  const player2X = useRef(canvasSize.width / 2)
 
-  const ballX = useRef(VERTICAL_CANVAS_WIDTH / 2)
-  const ballY = useRef(VERTICAL_CANVAS_HEIGHT / 2)
+  const ballX = useRef(canvasSize.width / 2)
+  const ballY = useRef(canvasSize.height / 2)
 
   const ballSpeedX = useRef(3 * (Math.random() > 0.5 ? 1 : -1))
   const ballSpeedY = useRef(5 * (Math.random() > 0.5 ? 1 : -1))
@@ -73,17 +96,15 @@ const VerticalPongGame: React.FC = () => {
   }, [paddleSizeOption])
 
   const resetBall = useCallback(() => {
-    ballX.current = VERTICAL_CANVAS_WIDTH / 2
-    ballY.current = VERTICAL_CANVAS_HEIGHT / 2
+    ballX.current = canvasSize.width / 2
+    ballY.current = canvasSize.height / 2
     ballSpeedX.current = 3 * (Math.random() > 0.5 ? 1 : -1)
     ballSpeedY.current = 5 * (Math.random() > 0.5 ? 1 : -1)
 
     if (difficulty === 'hard') {
-      setObstacle(
-        generateRandomObstacle(VERTICAL_CANVAS_WIDTH, VERTICAL_CANVAS_HEIGHT)
-      )
+      setObstacle(generateRandomObstacle(canvasSize.width, canvasSize.height))
     }
-  }, [difficulty])
+  }, [canvasSize.height, canvasSize.width, difficulty])
 
   const startGameFromModal = () => {
     playGameStart()
@@ -154,14 +175,14 @@ const VerticalPongGame: React.FC = () => {
     if (player1TouchX.current !== null) {
       player1X.current = Math.min(
         Math.max(player1TouchX.current - paddleWidth / 2, 0),
-        VERTICAL_CANVAS_WIDTH - paddleWidth
+        canvasSize.width - paddleWidth
       )
     }
 
     if (player2TouchX.current !== null) {
       player2X.current = Math.min(
         Math.max(player2TouchX.current - paddleWidth / 2, 0),
-        VERTICAL_CANVAS_WIDTH - paddleWidth
+        canvasSize.width - paddleWidth
       )
     }
 
@@ -170,7 +191,7 @@ const VerticalPongGame: React.FC = () => {
 
     if (
       ballX.current - BALL_SIZE < 0 ||
-      ballX.current + BALL_SIZE > VERTICAL_CANVAS_WIDTH
+      ballX.current + BALL_SIZE > canvasSize.width
     ) {
       ballSpeedX.current *= -1
       playPong()
@@ -187,12 +208,12 @@ const VerticalPongGame: React.FC = () => {
     }
 
     if (
-      ballY.current + BALL_SIZE > VERTICAL_CANVAS_HEIGHT - PADDLE_WIDTH &&
+      ballY.current + BALL_SIZE > canvasSize.height - PADDLE_WIDTH &&
       ballX.current > player2X.current &&
       ballX.current < player2X.current + paddleWidth
     ) {
       ballSpeedY.current *= -1.05
-      ballY.current = VERTICAL_CANVAS_HEIGHT - PADDLE_WIDTH - BALL_SIZE
+      ballY.current = canvasSize.height - PADDLE_WIDTH - BALL_SIZE
       playPong()
     }
 
@@ -211,7 +232,7 @@ const VerticalPongGame: React.FC = () => {
         playAddPoint()
         resetBall()
       }
-    } else if (ballY.current > VERTICAL_CANVAS_HEIGHT) {
+    } else if (ballY.current > canvasSize.height) {
       score1.current += 1
       if (score1.current >= MAX_SCORE) {
         isRunningRef.current = false
@@ -226,6 +247,8 @@ const VerticalPongGame: React.FC = () => {
   }, [
     player1TouchX,
     player2TouchX,
+    canvasSize.width,
+    canvasSize.height,
     paddleWidth,
     difficulty,
     playPong,
@@ -239,8 +262,8 @@ const VerticalPongGame: React.FC = () => {
     (ctx: CanvasRenderingContext2D) => {
       drawVerticalScene({
         ctx,
-        width: VERTICAL_CANVAS_WIDTH,
-        height: VERTICAL_CANVAS_HEIGHT,
+        width: canvasSize.width,
+        height: canvasSize.height,
         paddleWidth,
         ballSize: BALL_SIZE,
         score1: score1.current,
@@ -253,7 +276,7 @@ const VerticalPongGame: React.FC = () => {
         obstacle,
       })
     },
-    [paddleWidth, difficulty, obstacle]
+    [canvasSize.width, canvasSize.height, paddleWidth, difficulty, obstacle]
   )
 
   useGameLoop({
@@ -266,36 +289,50 @@ const VerticalPongGame: React.FC = () => {
   })
 
   return (
-    <div className="flex flex-col items-center gap-4 p-4">
-      <ControlsPanel
-        isRunning={isRunning}
-        onToggleRunning={toggleRunning}
-        onRestart={() => {
-          isRunningRef.current = false
-          setIsRunning(false)
-          setGameOver(false)
-          setShowModal(true)
-        }}
-        disabled={showModal}
-      />
+    <div className="flex items-center justify-center min-h-screen p-6 bg-black">
+      <div className="flex flex-col items-center gap-6">
+        <ControlsPanel
+          isRunning={isRunning}
+          onToggleRunning={toggleRunning}
+          onRestart={() => {
+            isRunningRef.current = false
+            setIsRunning(false)
+            setGameOver(false)
+            setShowModal(true)
+          }}
+          disabled={showModal}
+        />
 
-      <GameSettingsModal
-        buttonText={gameOver ? 'Play Again' : 'Start the game'}
-        show={showModal || gameOver}
-        isRunning={isRunning}
-        paddleSizeOption={paddleSizeOption}
-        difficulty={difficulty}
-        onPaddleSizeChange={setPaddleSizeOption}
-        onDifficultyChange={setDifficulty}
-        onStart={startGameFromModal}
-      />
+        <GameSettingsModal
+          buttonText={gameOver ? 'Play Again' : 'Start the game'}
+          show={showModal || gameOver}
+          isRunning={isRunning}
+          paddleSizeOption={paddleSizeOption}
+          difficulty={difficulty}
+          onPaddleSizeChange={setPaddleSizeOption}
+          onDifficultyChange={setDifficulty}
+          onStart={startGameFromModal}
+        />
 
-      <canvas
-        ref={canvasRef}
-        width={VERTICAL_CANVAS_WIDTH}
-        height={VERTICAL_CANVAS_HEIGHT}
-        style={{ border: '4px solid white', backgroundColor: '#1a1a1a' }}
-      />
+        <canvas
+          ref={canvasRef}
+          width={canvasSize.width}
+          height={canvasSize.height}
+          className="border-8 border-white rounded-md"
+        />
+
+        <ControlsPanel
+          isRunning={isRunning}
+          onToggleRunning={toggleRunning}
+          onRestart={() => {
+            isRunningRef.current = false
+            setIsRunning(false)
+            setGameOver(false)
+            setShowModal(true)
+          }}
+          disabled={showModal}
+        />
+      </div>
     </div>
   )
 }
