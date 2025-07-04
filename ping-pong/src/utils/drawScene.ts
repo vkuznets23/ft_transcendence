@@ -26,8 +26,6 @@ export function drawScene({
   paddleWidth,
   paddleHeight,
   ballSize,
-  score1,
-  score2,
   player1Y,
   player2Y,
   ballX,
@@ -39,12 +37,6 @@ export function drawScene({
   ctx.clearRect(0, 0, canvasWidth, canvasHeight)
   ctx.fillStyle = '#1A1A1A'
   ctx.fillRect(0, 0, canvasWidth, canvasHeight)
-
-  // Счёт
-  ctx.fillStyle = 'white'
-  ctx.font = '48px sans-serif'
-  ctx.fillText(`${score1}`, canvasWidth / 4, 50)
-  ctx.fillText(`${score2}`, (canvasWidth * 3) / 4, 50)
 
   // Ракетки
   ctx.fillStyle = 'white'

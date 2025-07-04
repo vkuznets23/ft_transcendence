@@ -2,6 +2,7 @@ import React from 'react'
 
 type PaddleSizeOption = 'small' | 'medium' | 'large'
 type DifficultyOption = 'easy' | 'hard'
+type OpponentType = 'player' | 'ai'
 
 interface GameSettingsModalProps {
   buttonText: string
@@ -12,6 +13,8 @@ interface GameSettingsModalProps {
   onPaddleSizeChange: (value: PaddleSizeOption) => void
   onDifficultyChange: (value: DifficultyOption) => void
   onStart: () => void
+  opponentType: OpponentType
+  onOpponentTypeChange: (value: OpponentType) => void
 }
 
 const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
@@ -23,12 +26,31 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
   onPaddleSizeChange,
   onDifficultyChange,
   onStart,
+  opponentType,
+  onOpponentTypeChange,
 }) => {
   if (!show) return null
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50">
       <div className="bg-white p-8 rounded-lg text-center min-w-[300px]">
+        <div className="mb-6">
+          <label className="block mb-2 font-medium text-gray-700">
+            Opponent:
+          </label>
+          <select
+            value={opponentType}
+            onChange={(e) =>
+              onOpponentTypeChange(e.target.value as OpponentType)
+            }
+            disabled={isRunning}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
+          >
+            <option value="player">Player</option>
+            <option value="ai">AI</option>
+          </select>
+        </div>
+
         <div className="mb-6">
           <label className="block mb-2 font-medium text-gray-700">
             Paddle size:

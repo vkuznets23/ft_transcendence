@@ -303,7 +303,7 @@ const VerticalPongGame: React.FC = () => {
           disabled={showModal}
         />
 
-        <GameSettingsModal
+        {/* <GameSettingsModal
           buttonText={gameOver ? 'Play Again' : 'Start the game'}
           show={showModal || gameOver}
           isRunning={isRunning}
@@ -312,7 +312,7 @@ const VerticalPongGame: React.FC = () => {
           onPaddleSizeChange={setPaddleSizeOption}
           onDifficultyChange={setDifficulty}
           onStart={startGameFromModal}
-        />
+        /> */}
 
         <canvas
           ref={canvasRef}

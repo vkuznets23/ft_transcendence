@@ -1,4 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
+import player1 from '../assets/images/playerLeft.png'
+import player2 from '../assets/images/playerRight.png'
 import React, { useRef, useEffect, useState, useCallback } from 'react'
 import GameSettingsModal from './TogglableModal'
 import { generateRandomObstacle, Obstacle } from '../utils/generateObstacle'
@@ -16,6 +18,8 @@ import {
 import ControlsPanel from './ControllsPannel'
 import { resetBall } from '../utils/resetBall'
 import { useGameSounds } from '../hooks/useGameSounds'
+import { useAIPlayer } from '../hooks/useAIPlayer'
+import { HeartDisplay } from './Heartdisplay'
 
 export type PaddleSizeOption = keyof typeof PADDLE_HEIGHT_MAP
 export type DifficultyOption = 'easy' | 'hard'
@@ -25,6 +29,11 @@ const PongGame: React.FC = () => {
   const [gameOver, setGameOver] = useState(false)
   const { playAddPoint, playGameOver, playGameStart, playPong } =
     useGameSounds()
+
+  const [opponentType, setOpponentType] = useState<'player' | 'ai'>('player')
+
+  const [score1State, setScore1State] = useState(0)
+  const [score2State, setScore2State] = useState(0)
 
   // --- Refs для управления состоянием игры ---
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
@@ -39,7 +48,19 @@ const PongGame: React.FC = () => {
     handleKeyUp,
   } = usePlayerControls()
 
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown)
+    window.addEventListener('keyup', handleKeyUp)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+      window.removeEventListener('keyup', handleKeyUp)
+    }
+  }, [handleKeyDown, handleKeyUp])
+
   const isRunningRef = useRef(false)
+
+  const aiUpPressedRef = useRef(false)
+  const aiDownPressedRef = useRef(false)
 
   // Позиции и скорости
   const player1Y = useRef(CANVAS_HEIGHT / 2)
@@ -65,6 +86,9 @@ const PongGame: React.FC = () => {
 
   // Текущий размер ракетки
   const paddleHeightRef = useRef(PADDLE_HEIGHT_MAP[paddleSizeOption])
+
+  const rightPaddleYRef = player2Y
+  const rightPaddleHeight = paddleHeightRef.current
 
   // Синхронизируем paddleHeight и позиции игроков при смене размера ракетки
   useEffect(() => {
@@ -149,9 +173,23 @@ const PongGame: React.FC = () => {
     }
   }, [obstacle])
 
+  console.log(
+    'AI up:',
+    aiUpPressedRef.current,
+    'down:',
+    aiDownPressedRef.current
+  )
+
   // Обновление позиции игроков и мяча
   const updatePositions = useCallback(() => {
     if (!isRunningRef.current) return
+
+    console.log(
+      'AI up:',
+      aiUpPressedRef.current,
+      'AI down:',
+      aiDownPressedRef.current
+    )
 
     // Игрок 1 - управление W/S
     if (wPressed.current) player1Y.current -= 7
@@ -162,12 +200,28 @@ const PongGame: React.FC = () => {
     )
 
     // Игрок 2 - управление стрелками
-    if (upPressed.current) player2Y.current -= 7
-    if (downPressed.current) player2Y.current += 7
-    player2Y.current = Math.max(
-      0,
-      Math.min(player2Y.current, CANVAS_HEIGHT - paddleHeightRef.current)
-    )
+
+    if (opponentType === 'player') {
+      if (upPressed.current) player2Y.current -= 7
+      if (downPressed.current) player2Y.current += 7
+      player2Y.current = Math.max(
+        0,
+        Math.min(player2Y.current, CANVAS_HEIGHT - paddleHeightRef.current)
+      )
+    }
+
+    if (opponentType === 'ai') {
+      if (aiUpPressedRef.current) player2Y.current -= 7
+      if (aiDownPressedRef.current) player2Y.current += 7
+
+      // Ограничение позиции
+      player2Y.current = Math.max(
+        0,
+        Math.min(player2Y.current, CANVAS_HEIGHT - paddleHeightRef.current)
+      )
+
+      console.log('Updated player2Y:', player2Y.current)
+    }
 
     // Обновляем позицию мяча
     ballX.current += ballSpeedX.current
@@ -211,6 +265,8 @@ const PongGame: React.FC = () => {
     // Голы
     if (ballX.current < 0) {
       score2.current += 1
+      setScore2State(score2.current)
+
       if (score2.current >= MAX_SCORE) {
         isRunningRef.current = false
         setIsRunning(false)
@@ -222,6 +278,7 @@ const PongGame: React.FC = () => {
       }
     } else if (ballX.current > CANVAS_WIDTH) {
       score1.current += 1
+      setScore1State(score1.current)
       if (score1.current >= MAX_SCORE) {
         isRunningRef.current = false
         setIsRunning(false)
@@ -240,6 +297,7 @@ const PongGame: React.FC = () => {
     difficulty,
     checkBallObstacleCollision,
     resetBall,
+    opponentType,
   ])
 
   // Рисуем сцену
@@ -289,6 +347,8 @@ const PongGame: React.FC = () => {
     setGameOver(false)
     setShowModal(false)
     onResetBall(true)
+    setScore1State(0)
+    setScore2State(0)
     setTimeout(() => {
       toggleRunning()
     }, 100)
@@ -308,31 +368,70 @@ const PongGame: React.FC = () => {
     }
   }, [showModal, toggleRunning])
 
+  useAIPlayer({
+    isRunningRef,
+    difficulty,
+    playerYRef: rightPaddleYRef,
+    paddleHeight: rightPaddleHeight,
+    ballX,
+    ballY,
+    ballSpeedX,
+    ballSpeedY,
+    setUpPressed: (val) => {
+      console.log('AI setUpPressed', val)
+      aiUpPressedRef.current = val
+    },
+    setDownPressed: (val) => {
+      console.log('AI setDownPressed', val)
+      aiDownPressedRef.current = val
+    },
+    enabled: opponentType === 'ai',
+  })
+
   return (
     <div className="flex flex-col items-center gap-6 p-6 min-h-screen">
-      <ControlsPanel
-        isRunning={isRunning}
-        onToggleRunning={toggleRunning}
-        onRestart={() => {
-          isRunningRef.current = false
-          setIsRunning(false)
-          setGameOver(false)
-          setShowModal(true)
-        }}
-        disabled={showModal}
-      />
-
       <GameSettingsModal
         buttonText={gameOver ? 'Play Again' : 'Start the game'}
         show={showModal || gameOver}
         isRunning={isRunning}
         paddleSizeOption={paddleSizeOption}
         difficulty={difficulty}
+        opponentType={opponentType}
+        onOpponentTypeChange={setOpponentType}
         onPaddleSizeChange={setPaddleSizeOption}
         onDifficultyChange={setDifficulty}
         onStart={startGameFromModal}
       />
 
+      <div className="flex items-center gap-10">
+        <div className="flex items-center gap-5">
+          <img
+            src={player1}
+            alt="player1"
+            className="flex justify-start h-[40px]"
+          />
+          <HeartDisplay score={score1State} player="left" />
+        </div>
+        <ControlsPanel
+          isRunning={isRunning}
+          onToggleRunning={toggleRunning}
+          onRestart={() => {
+            isRunningRef.current = false
+            setIsRunning(false)
+            setGameOver(false)
+            setShowModal(true)
+          }}
+          disabled={showModal}
+        />
+        <div className="flex items-center gap-5">
+          <HeartDisplay score={score2State} player="right" />
+          <img
+            src={player2}
+            alt="player2"
+            className="flex justify-start h-[40px]"
+          />
+        </div>
+      </div>
       <canvas
         ref={canvasRef}
         width={CANVAS_WIDTH}
