@@ -1,6 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import player1 from '../assets/images/playerLeft.png'
 import player2 from '../assets/images/playerRight.png'
+import playerAI from '../assets/images/playerAI.png'
 import React, { useRef, useEffect, useState, useCallback } from 'react'
 import GameSettingsModal from './TogglableModal'
 import { generateRandomObstacle, Obstacle } from '../utils/generateObstacle'
@@ -410,7 +411,7 @@ const PongGame: React.FC = () => {
             alt="player1"
             className="flex justify-start h-[40px]"
           />
-          <HeartDisplay score={score1State} player="left" />
+          <HeartDisplay score={score2State} player="left" />
         </div>
         <ControlsPanel
           isRunning={isRunning}
@@ -424,12 +425,20 @@ const PongGame: React.FC = () => {
           disabled={showModal}
         />
         <div className="flex items-center gap-5">
-          <HeartDisplay score={score2State} player="right" />
-          <img
-            src={player2}
-            alt="player2"
-            className="flex justify-start h-[40px]"
-          />
+          <HeartDisplay score={score1State} player="right" />
+          {opponentType === 'ai' ? (
+            <img
+              src={playerAI}
+              alt="player AI"
+              className="flex justify-start h-[40px]"
+            />
+          ) : (
+            <img
+              src={player2}
+              alt="player2"
+              className="flex justify-start h-[40px]"
+            />
+          )}
         </div>
       </div>
       <canvas
