@@ -68,8 +68,8 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
               disabled={isRunning}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
             >
-              <option value="easy">Stupid</option>
-              <option value="hard">Giga smart</option>
+              <option value="easy">404 IQ Not Found</option>
+              <option value="hard">Gigabrain</option>
             </select>
           </div>
         )}
@@ -104,9 +104,9 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
             disabled={isRunning}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
           >
-            <option value="easy">Easy</option>
-            <option value="medium">Medium</option>
-            <option value="hard">Hard</option>
+            <option value="easy">Easy-Peasy</option>
+            <option value="medium">Mid-Boss Energy</option>
+            <option value="hard">Sweat & Regret</option>
           </select>
         </div>
 

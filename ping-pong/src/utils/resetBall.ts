@@ -16,7 +16,7 @@ export const resetBall = (
   ballSpeedXRef.current = 5 * (Math.random() > 0.5 ? 1 : -1)
   ballSpeedYRef.current = 3 * (Math.random() > 0.5 ? 1 : -1)
 
-  if (isRestart && (difficulty === 'medium' || difficulty === 'hard')) {
+  if (!isRestart && (difficulty === 'medium' || difficulty === 'hard')) {
     setObstacle(generateRandomObstacle(CANVAS_WIDTH, CANVAS_HEIGHT))
   }
 }

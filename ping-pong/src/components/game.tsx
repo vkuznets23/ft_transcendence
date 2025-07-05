@@ -455,7 +455,7 @@ const PongGame: React.FC = () => {
           disabled={showModal}
         />
         <button
-          className="mb-4 px-4 py-2 bg-gray-700 text-white rounded"
+          className="flex items-center  px-4 py-2 bg-gray-700 text-white rounded"
           onClick={() => setIsSoundOn((prev) => !prev)}
         >
           {isSoundOn ? 'Sounds on' : 'Sounds off'}

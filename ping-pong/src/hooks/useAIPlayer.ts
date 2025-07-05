@@ -78,11 +78,11 @@ export function useAIPlayer({
     // Конфигурация ошибок в зависимости от сложности
     const settings = {
       easy: {
-        mistakeChance: 0.08, // выше шанс на ошибку
-        ignoreChance: 0.05, // часто просто "зависает"
-        reactionDelay: 160, // медленно реагирует
-        maxOffset: 90, // ошибки крупнее
-        margin: 50, // реагирует неточно
+        mistakeChance: 0.1, // выше шанс на ошибку
+        ignoreChance: 0.08, // часто просто "зависает"
+        reactionDelay: 180, // медленно реагирует
+        maxOffset: 120, // ошибки крупнее
+        margin: 70, // реагирует неточно
         fatigueStep: 0.2, // быстрее устаёт
         fatigueRecovery: 0.01,
       },
