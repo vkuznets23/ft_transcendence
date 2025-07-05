@@ -92,7 +92,7 @@ export function useAIPlayer({
         reactionDelay: 100,
         maxOffset: 50,
         margin: 30,
-        fatigueStep: 0.01,
+        fatigueStep: 0.1,
         fatigueRecovery: 0.02,
       },
     }
@@ -172,7 +172,7 @@ export function useAIPlayer({
         setDownPressed(false)
         console.log('AI: stop')
       }
-    }, 30)
+    }, 1000)
 
     return () => clearInterval(interval)
   }, [
