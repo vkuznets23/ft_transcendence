@@ -15,6 +15,7 @@ import {
   BALL_SIZE,
   MAX_SCORE,
   PADDLE_HEIGHT_MAP,
+  MAX_SPEED,
 } from '../utils/constants'
 import ControlsPanel from './ControllsPannel'
 import { resetBall } from '../utils/resetBall'
@@ -23,7 +24,7 @@ import { useAIPlayer } from '../hooks/useAIPlayer'
 import { HeartDisplay } from './Heartdisplay'
 
 export type PaddleSizeOption = keyof typeof PADDLE_HEIGHT_MAP
-export type DifficultyOption = 'easy' | 'hard'
+export type DifficultyOption = 'easy' | 'medium' | 'hard'
 export type AIDifficultyOption = 'easy' | 'hard'
 
 const PongGame: React.FC = () => {
@@ -107,6 +108,27 @@ const PongGame: React.FC = () => {
     )
   }, [paddleSizeOption])
 
+  useEffect(() => {
+    if (difficulty !== 'hard') return
+
+    let intervalId: NodeJS.Timeout | null = null
+
+    const maybeStartInterval = () => {
+      if (isRunningRef.current) {
+        intervalId = setInterval(() => {
+          setObstacle(generateRandomObstacle(CANVAS_WIDTH, CANVAS_HEIGHT))
+        }, 3000)
+      }
+    }
+
+    maybeStartInterval()
+
+    // Очистка при размонтировании или при изменении состояния
+    return () => {
+      if (intervalId) clearInterval(intervalId)
+    }
+  }, [difficulty, isRunning])
+
   // --- Основная логика ---
 
   // Сброс мяча в центр + рандомная скорость
@@ -158,6 +180,9 @@ const PongGame: React.FC = () => {
 
     if (minOverlapX < minOverlapY) {
       ballSpeedX.current *= -1
+      if (Math.abs(ballSpeedX.current) > MAX_SPEED) {
+        ballSpeedX.current = MAX_SPEED * Math.sign(ballSpeedX.current)
+      }
       playPong()
 
       if (overlapLeft < overlapRight) {
@@ -167,6 +192,9 @@ const PongGame: React.FC = () => {
       }
     } else {
       ballSpeedY.current *= -1
+      if (Math.abs(ballSpeedX.current) > MAX_SPEED) {
+        ballSpeedX.current = MAX_SPEED * Math.sign(ballSpeedX.current)
+      }
       playPong()
 
       if (overlapTop < overlapBottom) {
@@ -177,23 +205,9 @@ const PongGame: React.FC = () => {
     }
   }, [obstacle, playPong])
 
-  console.log(
-    'AI up:',
-    aiUpPressedRef.current,
-    'down:',
-    aiDownPressedRef.current
-  )
-
   // Обновление позиции игроков и мяча
   const updatePositions = useCallback(() => {
     if (!isRunningRef.current) return
-
-    console.log(
-      'AI up:',
-      aiUpPressedRef.current,
-      'AI down:',
-      aiDownPressedRef.current
-    )
 
     // Игрок 1 - управление W/S
     if (wPressed.current) player1Y.current -= 7
@@ -204,7 +218,6 @@ const PongGame: React.FC = () => {
     )
 
     // Игрок 2 - управление стрелками
-
     if (opponentType === 'player') {
       if (upPressed.current) player2Y.current -= 7
       if (downPressed.current) player2Y.current += 7
@@ -223,8 +236,6 @@ const PongGame: React.FC = () => {
         0,
         Math.min(player2Y.current, CANVAS_HEIGHT - paddleHeightRef.current)
       )
-
-      console.log('Updated player2Y:', player2Y.current)
     }
 
     // Обновляем позицию мяча
@@ -237,6 +248,9 @@ const PongGame: React.FC = () => {
       ballY.current + BALL_SIZE > CANVAS_HEIGHT
     ) {
       ballSpeedY.current *= -1
+      if (Math.abs(ballSpeedX.current) > MAX_SPEED) {
+        ballSpeedX.current = MAX_SPEED * Math.sign(ballSpeedX.current)
+      }
       playPong()
     }
 
@@ -247,6 +261,9 @@ const PongGame: React.FC = () => {
       ballY.current < player1Y.current + paddleHeightRef.current
     ) {
       ballSpeedX.current *= -1.05
+      if (Math.abs(ballSpeedX.current) > MAX_SPEED) {
+        ballSpeedX.current = MAX_SPEED * Math.sign(ballSpeedX.current)
+      }
       ballX.current = PADDLE_WIDTH + BALL_SIZE
       playPong()
     }
@@ -257,12 +274,15 @@ const PongGame: React.FC = () => {
       ballY.current < player2Y.current + paddleHeightRef.current
     ) {
       ballSpeedX.current *= -1.05
+      if (Math.abs(ballSpeedX.current) > MAX_SPEED) {
+        ballSpeedX.current = MAX_SPEED * Math.sign(ballSpeedX.current)
+      }
       ballX.current = CANVAS_WIDTH - PADDLE_WIDTH - BALL_SIZE
       playPong()
     }
 
     // Коллизия с препятствием (если сложно)
-    if (difficulty === 'hard') {
+    if (difficulty === 'hard' || difficulty === 'medium') {
       checkBallObstacleCollision()
     }
 

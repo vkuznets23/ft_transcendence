@@ -1,4 +1,5 @@
 import { Obstacle } from './generateObstacle'
+import { type DifficultyOption } from '../components/game'
 
 interface DrawSceneParams {
   ctx: CanvasRenderingContext2D
@@ -13,7 +14,7 @@ interface DrawSceneParams {
   player2Y: number
   ballX: number
   ballY: number
-  difficulty: 'easy' | 'hard'
+  difficulty: DifficultyOption
   obstacle?: Obstacle
 }
 
@@ -55,7 +56,7 @@ export function drawScene({
   )
 
   // Препятствие
-  if (difficulty === 'hard' && obstacle) {
+  if ((difficulty === 'hard' || difficulty === 'medium') && obstacle) {
     ctx.fillStyle = 'red'
     ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height)
   }

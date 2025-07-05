@@ -13,7 +13,7 @@ interface GameSettingsModalProps {
   AIdifficulty: AIDifficultyOption
   onPaddleSizeChange: (value: PaddleSizeOption) => void
   onDifficultyChange: (value: DifficultyOption) => void
-  onAIDifficultyChange: (value: DifficultyOption) => void
+  onAIDifficultyChange: (value: AIDifficultyOption) => void
   onStart: () => void
   opponentType: OpponentType
   onOpponentTypeChange: (value: OpponentType) => void
@@ -105,6 +105,7 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
           >
             <option value="easy">Easy</option>
+            <option value="medium">Medium</option>
             <option value="hard">Hard</option>
           </select>
         </div>

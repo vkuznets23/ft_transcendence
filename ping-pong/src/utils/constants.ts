@@ -3,6 +3,7 @@ export const CANVAS_HEIGHT = 600
 export const PADDLE_WIDTH = 15
 export const BALL_SIZE = 10
 export const MAX_SCORE = 5
+export const MAX_SPEED = 12
 
 export const PADDLE_HEIGHT_MAP = {
   small: 60,
