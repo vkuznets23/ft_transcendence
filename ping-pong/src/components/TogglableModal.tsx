@@ -1,7 +1,7 @@
 import React from 'react'
+import { type AIDifficultyOption, type DifficultyOption } from './game'
 
 type PaddleSizeOption = 'small' | 'medium' | 'large'
-type DifficultyOption = 'easy' | 'hard'
 type OpponentType = 'player' | 'ai'
 
 interface GameSettingsModalProps {
@@ -10,8 +10,10 @@ interface GameSettingsModalProps {
   isRunning: boolean
   paddleSizeOption: PaddleSizeOption
   difficulty: DifficultyOption
+  AIdifficulty: AIDifficultyOption
   onPaddleSizeChange: (value: PaddleSizeOption) => void
   onDifficultyChange: (value: DifficultyOption) => void
+  onAIDifficultyChange: (value: DifficultyOption) => void
   onStart: () => void
   opponentType: OpponentType
   onOpponentTypeChange: (value: OpponentType) => void
@@ -23,8 +25,10 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
   isRunning,
   paddleSizeOption,
   difficulty,
+  AIdifficulty,
   onPaddleSizeChange,
   onDifficultyChange,
+  onAIDifficultyChange,
   onStart,
   opponentType,
   onOpponentTypeChange,
@@ -50,6 +54,25 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
             <option value="ai">AI</option>
           </select>
         </div>
+
+        {opponentType === 'ai' && (
+          <div className="mb-6">
+            <label className="block mb-2 font-medium text-gray-700">
+              AI difficulty level:
+            </label>
+            <select
+              value={AIdifficulty}
+              onChange={(e) =>
+                onAIDifficultyChange(e.target.value as AIDifficultyOption)
+              }
+              disabled={isRunning}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
+            >
+              <option value="easy">Stupid</option>
+              <option value="hard">Giga smart</option>
+            </select>
+          </div>
+        )}
 
         <div className="mb-6">
           <label className="block mb-2 font-medium text-gray-700">

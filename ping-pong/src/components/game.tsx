@@ -24,12 +24,14 @@ import { HeartDisplay } from './Heartdisplay'
 
 export type PaddleSizeOption = keyof typeof PADDLE_HEIGHT_MAP
 export type DifficultyOption = 'easy' | 'hard'
+export type AIDifficultyOption = 'easy' | 'hard'
 
 const PongGame: React.FC = () => {
   const [showModal, setShowModal] = useState(true)
   const [gameOver, setGameOver] = useState(false)
+  const [isSoundOn, setIsSoundOn] = useState(true)
   const { playAddPoint, playGameOver, playGameStart, playPong } =
-    useGameSounds()
+    useGameSounds(isSoundOn)
 
   const [opponentType, setOpponentType] = useState<'player' | 'ai'>('player')
 
@@ -81,6 +83,7 @@ const PongGame: React.FC = () => {
   const [paddleSizeOption, setPaddleSizeOption] =
     useState<PaddleSizeOption>('medium')
   const [difficulty, setDifficulty] = useState<DifficultyOption>('easy')
+  const [AIdifficulty, setAIDifficulty] = useState<AIDifficultyOption>('easy')
   const [obstacle, setObstacle] = useState<Obstacle>(() =>
     generateRandomObstacle(CANVAS_WIDTH, CANVAS_HEIGHT)
   )
@@ -172,7 +175,7 @@ const PongGame: React.FC = () => {
         ballY.current = obstacleBottom + BALL_SIZE
       }
     }
-  }, [obstacle])
+  }, [obstacle, playPong])
 
   console.log(
     'AI up:',
@@ -299,6 +302,9 @@ const PongGame: React.FC = () => {
     checkBallObstacleCollision,
     resetBall,
     opponentType,
+    playPong,
+    playAddPoint,
+    playGameOver,
   ])
 
   // Рисуем сцену
@@ -371,7 +377,7 @@ const PongGame: React.FC = () => {
 
   useAIPlayer({
     isRunningRef,
-    difficulty,
+    AIdifficulty,
     playerYRef: rightPaddleYRef,
     paddleHeight: rightPaddleHeight,
     ballX,
@@ -389,6 +395,8 @@ const PongGame: React.FC = () => {
     enabled: opponentType === 'ai',
   })
 
+  console.log(isSoundOn)
+
   return (
     <div className="flex flex-col items-center gap-6 p-6 min-h-screen">
       <GameSettingsModal
@@ -397,10 +405,12 @@ const PongGame: React.FC = () => {
         isRunning={isRunning}
         paddleSizeOption={paddleSizeOption}
         difficulty={difficulty}
+        AIdifficulty={AIdifficulty}
         opponentType={opponentType}
         onOpponentTypeChange={setOpponentType}
         onPaddleSizeChange={setPaddleSizeOption}
         onDifficultyChange={setDifficulty}
+        onAIDifficultyChange={setAIDifficulty}
         onStart={startGameFromModal}
       />
 
@@ -424,6 +434,12 @@ const PongGame: React.FC = () => {
           }}
           disabled={showModal}
         />
+        <button
+          className="mb-4 px-4 py-2 bg-gray-700 text-white rounded"
+          onClick={() => setIsSoundOn((prev) => !prev)}
+        >
+          {isSoundOn ? 'Sounds on' : 'Sounds off'}
+        </button>
         <div className="flex items-center gap-5">
           <HeartDisplay score={score1State} player="right" />
           {opponentType === 'ai' ? (

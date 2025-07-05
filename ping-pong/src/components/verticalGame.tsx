@@ -25,7 +25,7 @@ const VerticalPongGame: React.FC = () => {
   const [showModal, setShowModal] = useState(true)
   const [gameOver, setGameOver] = useState(false)
   const { playAddPoint, playGameOver, playGameStart, playPong } =
-    useGameSounds()
+    useGameSounds(true)
   const [canvasSize, setCanvasSize] = useState({
     width: VERTICAL_CANVAS_WIDTH,
     height: VERTICAL_CANVAS_HEIGHT,

@@ -47,7 +47,7 @@ const paddleX = CANVAS_WIDTH - PADDLE_WIDTH
 
 export function useAIPlayer({
   isRunningRef,
-  difficulty,
+  AIdifficulty,
   playerYRef,
   paddleHeight,
   ballX,
@@ -59,7 +59,7 @@ export function useAIPlayer({
   enabled,
 }: {
   isRunningRef: React.MutableRefObject<boolean>
-  difficulty: 'easy' | 'hard'
+  AIdifficulty: 'easy' | 'hard'
   playerYRef: React.MutableRefObject<number>
   paddleHeight: number
   ballX: React.MutableRefObject<number>
@@ -97,13 +97,17 @@ export function useAIPlayer({
       },
     }
 
-    const config = settings[difficulty]
+    const config = settings[AIdifficulty]
     let lastReactionTime = Date.now()
     let fatigueCounter = 0
     let fatigueLevel = 0
 
     const interval = setInterval(() => {
-      if (!isRunningRef.current) return
+      if (!isRunningRef.current) {
+        setUpPressed(false)
+        setDownPressed(false)
+        return
+      }
 
       const now = Date.now()
       if (now - lastReactionTime < config.reactionDelay) return
@@ -172,13 +176,13 @@ export function useAIPlayer({
         setDownPressed(false)
         console.log('AI: stop')
       }
-    }, 1000)
+    }, 30)
 
     return () => clearInterval(interval)
   }, [
     enabled,
     isRunningRef,
-    difficulty,
+    AIdifficulty,
     playerYRef,
     paddleHeight,
     ballX,
