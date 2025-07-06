@@ -31,6 +31,8 @@ const PongGame: React.FC = () => {
   const [showModal, setShowModal] = useState(true)
   const [gameOver, setGameOver] = useState(false)
   const [isSoundOn, setIsSoundOn] = useState(true)
+  const [showPauseModal, setShowPauseModal] = useState(false)
+
   const { playAddPoint, playGameOver, playGameStart, playPong } =
     useGameSounds(isSoundOn)
 
@@ -365,7 +367,19 @@ const PongGame: React.FC = () => {
     const next = !isRunningRef.current
     isRunningRef.current = next
     setIsRunning(next)
+    if (!next) {
+      // Если поставили игру на паузу — показать модалку
+      setShowPauseModal(true)
+    } else {
+      // Если возобновляем игру — скрыть модалку
+      setShowPauseModal(false)
+    }
   }, [])
+
+  const handleContinueFromPause = () => {
+    setShowPauseModal(false)
+    toggleRunning()
+  }
 
   const startGameFromModal = () => {
     playGameStart()
@@ -454,6 +468,18 @@ const PongGame: React.FC = () => {
           }}
           disabled={showModal}
         />
+        {showPauseModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-90 flex justify-center items-center z-50">
+            <div>
+              <button
+                onClick={handleContinueFromPause}
+                className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-md"
+              >
+                Continue
+              </button>
+            </div>
+          </div>
+        )}
         <button
           className="flex items-center  px-4 py-2 bg-gray-700 text-white rounded"
           onClick={() => setIsSoundOn((prev) => !prev)}

@@ -1,4 +1,7 @@
 import React from 'react'
+import player1 from '../assets/images/playerLeft.png'
+import player2 from '../assets/images/playerRight.png'
+import playerAI from '../assets/images/playerAI.png'
 import { type AIDifficultyOption, type DifficultyOption } from './game'
 
 type PaddleSizeOption = 'small' | 'medium' | 'large'
@@ -37,28 +40,58 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50">
-      <div className="bg-white p-8 rounded-lg text-center min-w-[300px]">
+      <div className="bg-black border border-white p-8 rounded-2xl text-center min-w-[300px]">
+        {/* Opponent */}
         <div className="mb-6">
-          <label className="block mb-2 font-medium text-gray-700">
-            Opponent:
-          </label>
-          <select
-            value={opponentType}
-            onChange={(e) =>
-              onOpponentTypeChange(e.target.value as OpponentType)
-            }
-            disabled={isRunning}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
-          >
-            <option value="player">Player</option>
-            <option value="ai">AI</option>
-          </select>
+          <div className="flex justify-center space-x-4">
+            <button
+              onClick={() => onOpponentTypeChange('player')}
+              disabled={isRunning}
+              className={`px-4 py-2 rounded-md border border-white text-white ${
+                opponentType === 'player' ? '' : 'opacity-40'
+              } disabled:opacity-50`}
+            >
+              <div className="flex items-center gap-2">
+                <img
+                  src={player1}
+                  alt="player1"
+                  className="flex justify-start h-[40px]"
+                />
+                <img
+                  src={player2}
+                  alt="player1"
+                  className="flex justify-start h-[40px]"
+                />
+              </div>
+            </button>
+            <button
+              onClick={() => onOpponentTypeChange('ai')}
+              disabled={isRunning}
+              className={`px-4 py-2 rounded-md border border-white text-white ${
+                opponentType === 'ai' ? '' : 'opacity-40'
+              } disabled:opacity-50`}
+            >
+              <div className="flex items-center gap-2">
+                <img
+                  src={player1}
+                  alt="player1"
+                  className="flex justify-start h-[40px]"
+                />
+                <img
+                  src={playerAI}
+                  alt="player1"
+                  className="flex justify-start h-[40px]"
+                />
+              </div>
+            </button>
+          </div>
         </div>
 
+        {/* AI Difficulty */}
         {opponentType === 'ai' && (
-          <div className="mb-6">
-            <label className="block mb-2 font-medium text-gray-700">
-              AI difficulty level:
+          <div className="mb-6 flex items-center justify-between gap-4">
+            <label className="font-medium text-white min-w-[140px] text-left">
+              AI Intelligence:
             </label>
             <select
               value={AIdifficulty}
@@ -66,7 +99,7 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
                 onAIDifficultyChange(e.target.value as AIDifficultyOption)
               }
               disabled={isRunning}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
+              className="w-full px-3 py-2 bg-black text-white border border-white rounded-md appearance-none focus:outline-none focus:ring-2 focus:ring-white disabled:opacity-50"
             >
               <option value="easy">404 IQ Not Found</option>
               <option value="hard">Gigabrain</option>
@@ -74,8 +107,9 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
           </div>
         )}
 
-        <div className="mb-6">
-          <label className="block mb-2 font-medium text-gray-700">
+        {/* Paddle Size */}
+        <div className="mb-6 flex items-center justify-between gap-4">
+          <label className="font-medium text-white min-w-[140px] text-left">
             Paddle size:
           </label>
           <select
@@ -84,7 +118,7 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
               onPaddleSizeChange(e.target.value as PaddleSizeOption)
             }
             disabled={isRunning}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
+            className="w-full px-3 py-2 bg-black text-white border border-white rounded-md appearance-none focus:outline-none focus:ring-2 focus:ring-white disabled:opacity-50"
           >
             <option value="small">Small</option>
             <option value="medium">Medium</option>
@@ -92,9 +126,10 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
           </select>
         </div>
 
-        <div className="mb-6">
-          <label className="block mb-2 font-medium text-gray-700">
-            Difficulty level:
+        {/* Obstacle */}
+        <div className="mb-6 flex items-center justify-between gap-4">
+          <label className="font-medium text-white min-w-[140px] text-left">
+            Obstacle:
           </label>
           <select
             value={difficulty}
@@ -102,18 +137,19 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
               onDifficultyChange(e.target.value as DifficultyOption)
             }
             disabled={isRunning}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
+            className="w-full px-3 py-2 bg-black text-white border border-white rounded-md appearance-none focus:outline-none focus:ring-2 focus:ring-white disabled:opacity-50"
           >
-            <option value="easy">Easy-Peasy</option>
-            <option value="medium">Mid-Boss Energy</option>
-            <option value="hard">Sweat & Regret</option>
+            <option value="easy">Clear Sky</option>
+            <option value="medium">Static Trouble</option>
+            <option value="hard">Chaos Mode</option>
           </select>
         </div>
 
+        {/* Start Button */}
         <button
           onClick={onStart}
           disabled={isRunning}
-          className="mt-4 px-6 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="mt-4 px-6 py-2 bg-white text-black font-semibold border border-white rounded-md hover:bg-opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {buttonText}
         </button>
