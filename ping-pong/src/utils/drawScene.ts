@@ -1,4 +1,5 @@
 import { Obstacle } from './generateObstacle'
+import { type DifficultyOption } from '../components/game'
 
 interface DrawSceneParams {
   ctx: CanvasRenderingContext2D
@@ -13,7 +14,7 @@ interface DrawSceneParams {
   player2Y: number
   ballX: number
   ballY: number
-  difficulty: 'easy' | 'hard'
+  difficulty: DifficultyOption
   obstacle?: Obstacle
 }
 
@@ -26,8 +27,6 @@ export function drawScene({
   paddleWidth,
   paddleHeight,
   ballSize,
-  score1,
-  score2,
   player1Y,
   player2Y,
   ballX,
@@ -39,12 +38,6 @@ export function drawScene({
   ctx.clearRect(0, 0, canvasWidth, canvasHeight)
   ctx.fillStyle = '#1A1A1A'
   ctx.fillRect(0, 0, canvasWidth, canvasHeight)
-
-  // Счёт
-  ctx.fillStyle = 'white'
-  ctx.font = '48px sans-serif'
-  ctx.fillText(`${score1}`, canvasWidth / 4, 50)
-  ctx.fillText(`${score2}`, (canvasWidth * 3) / 4, 50)
 
   // Ракетки
   ctx.fillStyle = 'white'
@@ -63,7 +56,7 @@ export function drawScene({
   )
 
   // Препятствие
-  if (difficulty === 'hard' && obstacle) {
+  if ((difficulty === 'hard' || difficulty === 'medium') && obstacle) {
     ctx.fillStyle = 'red'
     ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height)
   }

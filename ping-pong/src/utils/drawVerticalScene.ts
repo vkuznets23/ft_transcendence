@@ -1,4 +1,5 @@
 import { Obstacle } from './generateObstacle'
+import { type DifficultyOption } from '../components/game'
 
 const PADDLE_THICKNESS = 10
 const paddleOffset = 10
@@ -15,7 +16,7 @@ interface VerticalDrawParams {
   player2X: number
   ballX: number
   ballY: number
-  difficulty: 'easy' | 'hard'
+  difficulty: DifficultyOption
   obstacle?: Obstacle | null
 }
 
