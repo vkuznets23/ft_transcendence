@@ -429,8 +429,6 @@ const PongGame: React.FC = () => {
     enabled: opponentType === 'ai',
   })
 
-  console.log(isSoundOn)
-
   return (
     <div className="flex flex-col items-center gap-6 p-6 min-h-screen">
       <GameSettingsModal

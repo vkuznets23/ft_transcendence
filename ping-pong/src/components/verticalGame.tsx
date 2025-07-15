@@ -1,4 +1,7 @@
 import React, { useRef, useCallback, useState, useEffect } from 'react'
+import player1 from '../assets/images/playerLeft.png'
+import player2 from '../assets/images/playerRight.png'
+import playerAI from '../assets/images/playerAI.png'
 import {
   CANVAS_WIDTH,
   CANVAS_HEIGHT,
@@ -13,8 +16,10 @@ import { usePlayerTouchControls } from '../hooks/usePlayerTouchControls'
 import { drawVerticalScene } from '../utils/drawVerticalScene'
 import ControlsPanel from './ControllsPannel'
 import GameSettingsModal from './TogglableModal'
-import { DifficultyOption, PaddleSizeOption } from './game'
+import { AIDifficultyOption, DifficultyOption, PaddleSizeOption } from './game'
 import { useGameSounds } from '../hooks/useGameSounds'
+import { useAIPlayerVertical } from '../hooks/useAIPlayer'
+import { HeartDisplay } from './Heartdisplay'
 
 const VERTICAL_CANVAS_WIDTH = CANVAS_HEIGHT
 const VERTICAL_CANVAS_HEIGHT = CANVAS_WIDTH
@@ -24,12 +29,18 @@ const VerticalPongGame: React.FC = () => {
   const [isRunning, setIsRunning] = useState(false)
   const [showModal, setShowModal] = useState(true)
   const [gameOver, setGameOver] = useState(false)
+  const [opponentType, setOpponentType] = useState<'player' | 'ai'>('player')
+
   const { playAddPoint, playGameOver, playGameStart, playPong } =
     useGameSounds(true)
   const [canvasSize, setCanvasSize] = useState({
     width: VERTICAL_CANVAS_WIDTH,
     height: VERTICAL_CANVAS_HEIGHT,
   })
+  const [AIdifficulty, setAIDifficulty] = useState<AIDifficultyOption>('easy')
+
+  const [score1State, setScore1State] = useState(0)
+  const [score2State, setScore2State] = useState(0)
 
   useEffect(() => {
     const handleResize = () => {
@@ -61,6 +72,9 @@ const VerticalPongGame: React.FC = () => {
 
   const isRunningRef = useRef(false)
 
+  const aiUpPressedRef = useRef(false)
+  const aiDownPressedRef = useRef(false)
+
   const toggleRunning = useCallback(() => {
     const next = !isRunningRef.current
     isRunningRef.current = next
@@ -82,6 +96,9 @@ const VerticalPongGame: React.FC = () => {
   const { player1TouchX, player2TouchX } = usePlayerTouchControls(canvasRef)
 
   const paddleHeightRef = useRef(PADDLE_HEIGHT_MAP[paddleSizeOption])
+
+  const rightPaddleYRef = player1X
+  const rightPaddleHeight = paddleHeightRef.current
 
   useEffect(() => {
     paddleHeightRef.current = PADDLE_HEIGHT_MAP[paddleSizeOption]
@@ -172,18 +189,30 @@ const VerticalPongGame: React.FC = () => {
   const updatePositions = useCallback(() => {
     if (!isRunningRef.current) return
 
-    if (player1TouchX.current !== null) {
-      player1X.current = Math.min(
-        Math.max(player1TouchX.current - paddleWidth / 2, 0),
-        canvasSize.width - paddleWidth
-      )
-    }
-
     if (player2TouchX.current !== null) {
       player2X.current = Math.min(
         Math.max(player2TouchX.current - paddleWidth / 2, 0),
         canvasSize.width - paddleWidth
       )
+    }
+    if (opponentType === 'player') {
+      if (player1TouchX.current !== null) {
+        player1X.current = Math.min(
+          Math.max(player1TouchX.current - paddleWidth / 2, 0),
+          canvasSize.width - paddleWidth
+        )
+      }
+    }
+
+    if (opponentType === 'ai') {
+      if (aiUpPressedRef.current) {
+        player1X.current = Math.max(player1X.current - 5, 0)
+      } else if (aiDownPressedRef.current) {
+        player1X.current = Math.min(
+          player1X.current + 5,
+          canvasSize.width - paddleWidth
+        )
+      }
     }
 
     ballX.current += ballSpeedX.current
@@ -223,6 +252,8 @@ const VerticalPongGame: React.FC = () => {
 
     if (ballY.current < 0) {
       score2.current += 1
+      setScore2State(score2.current)
+
       if (score2.current >= MAX_SCORE) {
         isRunningRef.current = false
         setIsRunning(false)
@@ -234,6 +265,8 @@ const VerticalPongGame: React.FC = () => {
       }
     } else if (ballY.current > canvasSize.height) {
       score1.current += 1
+      setScore1State(score1.current)
+
       if (score1.current >= MAX_SCORE) {
         isRunningRef.current = false
         setIsRunning(false)
@@ -246,11 +279,12 @@ const VerticalPongGame: React.FC = () => {
     }
   }, [
     player1TouchX,
-    player2TouchX,
+    opponentType,
     canvasSize.width,
     canvasSize.height,
     paddleWidth,
     difficulty,
+    player2TouchX,
     playPong,
     checkBallObstacleCollision,
     playGameOver,
@@ -288,9 +322,45 @@ const VerticalPongGame: React.FC = () => {
     handleKeyUp: () => {},
   })
 
+  useAIPlayerVertical({
+    isRunningRef,
+    AIdifficulty,
+    playerXRef: rightPaddleYRef,
+    paddleWidth: rightPaddleHeight,
+    ballX,
+    ballY,
+    ballSpeedX,
+    ballSpeedY,
+    setLeftPressed: (val) => {
+      console.log('AI setUpPressed', val)
+      aiUpPressedRef.current = val
+    },
+    setRightPressed: (val) => {
+      console.log('AI setDownPressed', val)
+      aiDownPressedRef.current = val
+    },
+    enabled: opponentType === 'ai',
+  })
+
   return (
     <div className="flex items-center justify-center min-h-screen p-6 bg-black">
       <div className="flex flex-col items-center gap-6">
+        <div className="flex items-center gap-5">
+          <HeartDisplay score={score2State} player="right" />
+          {opponentType === 'ai' ? (
+            <img
+              src={playerAI}
+              alt="player AI"
+              className="flex justify-start h-[40px]"
+            />
+          ) : (
+            <img
+              src={player2}
+              alt="player2"
+              className="flex justify-start h-[40px]"
+            />
+          )}
+        </div>
         <ControlsPanel
           isRunning={isRunning}
           onToggleRunning={toggleRunning}
@@ -303,16 +373,20 @@ const VerticalPongGame: React.FC = () => {
           disabled={showModal}
         />
 
-        {/* <GameSettingsModal
+        <GameSettingsModal
           buttonText={gameOver ? 'Play Again' : 'Start the game'}
           show={showModal || gameOver}
           isRunning={isRunning}
           paddleSizeOption={paddleSizeOption}
           difficulty={difficulty}
+          AIdifficulty={AIdifficulty}
+          opponentType={opponentType}
+          onOpponentTypeChange={setOpponentType}
           onPaddleSizeChange={setPaddleSizeOption}
           onDifficultyChange={setDifficulty}
+          onAIDifficultyChange={setAIDifficulty}
           onStart={startGameFromModal}
-        /> */}
+        />
 
         <canvas
           ref={canvasRef}
@@ -321,6 +395,14 @@ const VerticalPongGame: React.FC = () => {
           className="border-8 border-white rounded-md"
         />
 
+        <div className="flex items-center gap-5">
+          <img
+            src={player1}
+            alt="player1"
+            className="flex justify-start h-[40px]"
+          />
+          <HeartDisplay score={score1State} player="left" />
+        </div>
         <ControlsPanel
           isRunning={isRunning}
           onToggleRunning={toggleRunning}
