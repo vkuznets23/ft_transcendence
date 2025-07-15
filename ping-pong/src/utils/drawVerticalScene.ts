@@ -39,9 +39,6 @@ export function drawVerticalScene({
   ctx.fillStyle = '#1A1A1A'
   ctx.fillRect(0, 0, width, height)
 
-  // Счёт
-  ctx.fillStyle = 'white'
-  ctx.font = '48px sans-serif'
   // Игрок 1 — Левый верхний угол
   ctx.textAlign = 'left'
   ctx.textBaseline = 'top'
