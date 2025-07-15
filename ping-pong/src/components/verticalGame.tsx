@@ -129,6 +129,8 @@ const VerticalPongGame: React.FC = () => {
     score2.current = 0
     setGameOver(false)
     setShowModal(false)
+    setScore1State(0)
+    setScore2State(0)
     resetBall()
     setTimeout(() => {
       toggleRunning()

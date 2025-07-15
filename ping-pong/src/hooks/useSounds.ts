@@ -16,9 +16,15 @@ export const useSounds = () => {
   const play = (soundRef: React.MutableRefObject<HTMLAudioElement | null>) => {
     const sound = soundRef.current
     if (!sound) return
-    sound.pause()
-    sound.currentTime = 0
-    sound.play()
+
+    if (!sound.paused) {
+      sound.pause()
+      sound.currentTime = 0
+    }
+
+    sound.play().catch((e) => {
+      if (e.name !== 'AbortError') console.warn('Audio play error:', e)
+    })
   }
 
   return {
