@@ -1,7 +1,4 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import player1 from '../assets/images/playerLeft.png'
-import player2 from '../assets/images/playerRight.png'
-import playerAI from '../assets/images/playerAI.png'
 import React, { useRef, useEffect, useState, useCallback } from 'react'
 import GameSettingsModal from './TogglableModal'
 import { generateRandomObstacle, Obstacle } from '../utils/generateObstacle'
@@ -21,7 +18,8 @@ import ControlsPanel from './ControllsPannel'
 import { resetBall } from '../utils/resetBall'
 import { useGameSounds } from '../hooks/useGameSounds'
 import { useAIPlayer } from '../hooks/useAIPlayer'
-import { HeartDisplay } from './Heartdisplay'
+import PauseModal from './PauseModal'
+import { PlayersDisplay } from './PlayersDisplay'
 
 export type PaddleSizeOption = keyof typeof PADDLE_HEIGHT_MAP
 export type DifficultyOption = 'easy' | 'medium' | 'hard'
@@ -446,60 +444,28 @@ const PongGame: React.FC = () => {
         onStart={startGameFromModal}
       />
 
+      {showPauseModal && <PauseModal onContinue={handleContinueFromPause} />}
+
       <div className="flex items-center gap-10">
-        <div className="flex items-center gap-5">
-          <img
-            src={player1}
-            alt="player1"
-            className="flex justify-start h-[40px]"
-          />
-          <HeartDisplay score={score2State} player="left" />
-        </div>
-        <ControlsPanel
-          isRunning={isRunning}
-          onToggleRunning={toggleRunning}
-          onRestart={() => {
-            isRunningRef.current = false
-            setIsRunning(false)
-            setGameOver(false)
-            setShowModal(true)
-          }}
-          disabled={showModal}
-        />
-        {showPauseModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-90 flex justify-center items-center z-50">
-            <div>
-              <button
-                onClick={handleContinueFromPause}
-                className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-md"
-              >
-                Continue
-              </button>
-            </div>
-          </div>
-        )}
-        <button
-          className="flex items-center  px-4 py-2 bg-gray-700 text-white rounded"
-          onClick={() => setIsSoundOn((prev) => !prev)}
+        <PlayersDisplay
+          scoreLeft={score2State}
+          scoreRight={score1State}
+          opponentType={opponentType}
         >
-          {isSoundOn ? 'Sounds on' : 'Sounds off'}
-        </button>
-        <div className="flex items-center gap-5">
-          <HeartDisplay score={score1State} player="right" />
-          {opponentType === 'ai' ? (
-            <img
-              src={playerAI}
-              alt="player AI"
-              className="flex justify-start h-[40px]"
-            />
-          ) : (
-            <img
-              src={player2}
-              alt="player2"
-              className="flex justify-start h-[40px]"
-            />
-          )}
-        </div>
+          <ControlsPanel
+            isRunning={isRunning}
+            onToggleRunning={toggleRunning}
+            onRestart={() => {
+              isRunningRef.current = false
+              setIsRunning(false)
+              setGameOver(false)
+              setShowModal(true)
+            }}
+            disabled={showModal}
+            isSoundOn={isSoundOn}
+            onToggleSound={() => setIsSoundOn((prev) => !prev)}
+          />
+        </PlayersDisplay>
       </div>
       <canvas
         ref={canvasRef}

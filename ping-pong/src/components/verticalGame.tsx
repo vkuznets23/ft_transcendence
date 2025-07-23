@@ -1,7 +1,4 @@
 import React, { useRef, useCallback, useState, useEffect } from 'react'
-import player1 from '../assets/images/playerLeft.png'
-import player2 from '../assets/images/playerRight.png'
-import playerAI from '../assets/images/playerAI.png'
 import {
   CANVAS_WIDTH,
   CANVAS_HEIGHT,
@@ -19,7 +16,8 @@ import GameSettingsModal from './TogglableModal'
 import { AIDifficultyOption, DifficultyOption, PaddleSizeOption } from './game'
 import { useGameSounds } from '../hooks/useGameSounds'
 import { useAIPlayerVertical } from '../hooks/useAIPlayer'
-import { HeartDisplay } from './Heartdisplay'
+import PauseModal from './PauseModal'
+import { PlayersDisplay } from './PlayersDisplay'
 
 const VERTICAL_CANVAS_WIDTH = CANVAS_HEIGHT
 const VERTICAL_CANVAS_HEIGHT = CANVAS_WIDTH
@@ -30,6 +28,8 @@ const VerticalPongGame: React.FC = () => {
   const [showModal, setShowModal] = useState(true)
   const [gameOver, setGameOver] = useState(false)
   const [opponentType, setOpponentType] = useState<'player' | 'ai'>('player')
+  const [isSoundOn, setIsSoundOn] = useState(true)
+  const [showPauseModal, setShowPauseModal] = useState(false)
 
   const { playAddPoint, playGameOver, playGameStart, playPong } =
     useGameSounds(true)
@@ -79,6 +79,12 @@ const VerticalPongGame: React.FC = () => {
     const next = !isRunningRef.current
     isRunningRef.current = next
     setIsRunning(next)
+    setIsRunning(next)
+    if (!next) {
+      setShowPauseModal(true)
+    } else {
+      setShowPauseModal(false)
+    }
   }, [])
 
   const player1X = useRef(canvasSize.width / 2)
@@ -344,36 +350,38 @@ const VerticalPongGame: React.FC = () => {
     enabled: opponentType === 'ai',
   })
 
+  const handleContinueFromPause = () => {
+    setShowPauseModal(false)
+    toggleRunning()
+  }
+
+  const isMobile = window.innerWidth < 950
+
   return (
     <div className="flex items-center justify-center min-h-screen p-6 bg-black">
       <div className="flex flex-col items-center gap-6">
-        <div className="flex items-center gap-5">
-          <HeartDisplay score={score2State} player="right" />
-          {opponentType === 'ai' ? (
-            <img
-              src={playerAI}
-              alt="player AI"
-              className="flex justify-start h-[40px]"
-            />
-          ) : (
-            <img
-              src={player2}
-              alt="player2"
-              className="flex justify-start h-[40px]"
-            />
-          )}
-        </div>
-        <ControlsPanel
-          isRunning={isRunning}
-          onToggleRunning={toggleRunning}
-          onRestart={() => {
-            isRunningRef.current = false
-            setIsRunning(false)
-            setGameOver(false)
-            setShowModal(true)
-          }}
-          disabled={showModal}
-        />
+        <PlayersDisplay
+          scoreLeft={score1State}
+          scoreRight={score2State}
+          opponentType={opponentType}
+          showPlayer="right"
+          isMobile={isMobile}
+        >
+          <ControlsPanel
+            isRunning={isRunning}
+            onToggleRunning={toggleRunning}
+            onRestart={() => {
+              isRunningRef.current = false
+              setIsRunning(false)
+              setGameOver(false)
+              setShowModal(true)
+            }}
+            disabled={showModal}
+            isSoundOn={isSoundOn}
+            onToggleSound={() => setIsSoundOn((prev) => !prev)}
+            showLabels={false}
+          />
+        </PlayersDisplay>
 
         <GameSettingsModal
           buttonText={gameOver ? 'Play Again' : 'Start the game'}
@@ -396,27 +404,31 @@ const VerticalPongGame: React.FC = () => {
           height={canvasSize.height}
           className="border-8 border-white rounded-md"
         />
-
-        <div className="flex items-center gap-5">
-          <img
-            src={player1}
-            alt="player1"
-            className="flex justify-start h-[40px]"
+        <PlayersDisplay
+          scoreLeft={score1State}
+          scoreRight={score2State}
+          opponentType={opponentType}
+          showPlayer="left"
+          isMobile={isMobile} // boolean, который можно получить из хука useMediaQuery или по window.innerWidth
+        >
+          <ControlsPanel
+            isRunning={isRunning}
+            onToggleRunning={toggleRunning}
+            onRestart={() => {
+              isRunningRef.current = false
+              setIsRunning(false)
+              setGameOver(false)
+              setShowModal(true)
+            }}
+            disabled={showModal}
+            isSoundOn={isSoundOn}
+            onToggleSound={() => setIsSoundOn((prev) => !prev)}
+            showLabels={false}
           />
-          <HeartDisplay score={score1State} player="left" />
-        </div>
-        <ControlsPanel
-          isRunning={isRunning}
-          onToggleRunning={toggleRunning}
-          onRestart={() => {
-            isRunningRef.current = false
-            setIsRunning(false)
-            setGameOver(false)
-            setShowModal(true)
-          }}
-          disabled={showModal}
-        />
+        </PlayersDisplay>
       </div>
+
+      {showPauseModal && <PauseModal onContinue={handleContinueFromPause} />}
     </div>
   )
 }
