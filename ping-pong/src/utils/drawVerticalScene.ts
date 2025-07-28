@@ -68,7 +68,7 @@ export function drawVerticalScene({
   }
   if (obstacle) {
     const { x, y, width, height } = obstacle
-    ctx.fillStyle = '#888'
+    ctx.fillStyle = 'red'
     ctx.fillRect(x, y, width, height)
   }
 
