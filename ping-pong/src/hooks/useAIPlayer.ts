@@ -40,10 +40,6 @@ export function predictBallLandingX({
       dx = -dx
     }
 
-    // if (y - BALL_SIZE < 0 || y + BALL_SIZE > CANVAS_HEIGHT) {
-    //   dy = -dy
-    // }
-
     if (steps > maxSteps) break
   }
 
@@ -267,21 +263,21 @@ export function useAIPlayerVertical({
     const settings = {
       easy: {
         mistakeChance: 0.1,
-        ignoreChance: 0.08,
-        reactionDelay: 180,
+        ignoreChance: 0.06,
+        reactionDelay: 170,
         maxOffset: 120,
-        margin: 70,
+        margin: 60,
         fatigueStep: 0.2,
         fatigueRecovery: 0.01,
       },
       hard: {
         mistakeChance: 0.02,
         ignoreChance: 0.01,
-        reactionDelay: 100,
-        maxOffset: 50,
-        margin: 30,
+        reactionDelay: 90,
+        maxOffset: 40,
+        margin: 20,
         fatigueStep: 0.1,
-        fatigueRecovery: 0.02,
+        fatigueRecovery: 0.05,
       },
     }
 
@@ -308,7 +304,7 @@ export function useAIPlayerVertical({
         return
       }
 
-      const targetY = CANVAS_HEIGHT - paddleWidth // правый край поля
+      const targetY = CANVAS_HEIGHT - paddleWidth
       let prediction = predictBallLandingX({
         ballX: ballX.current,
         ballY: ballY.current,

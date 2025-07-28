@@ -83,7 +83,6 @@ const VerticalPongGame: React.FC = () => {
     const next = !isRunningRef.current
     isRunningRef.current = next
     setIsRunning(next)
-    setIsRunning(next)
     if (!next) {
       setShowPauseModal(true)
     } else {
