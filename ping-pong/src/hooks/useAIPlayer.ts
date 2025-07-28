@@ -28,17 +28,23 @@ export function predictBallLandingX({
     return x
   }
 
+  let steps = 0
+  const maxSteps = 1000
+
   while ((dy > 0 && y < targetY) || (dy < 0 && y > targetY)) {
     x += dx
     y += dy
+    steps++
 
     if (x - BALL_SIZE < 0 || x + BALL_SIZE > CANVAS_WIDTH) {
       dx = -dx
     }
 
-    if (y - BALL_SIZE < 0 || y + BALL_SIZE > CANVAS_HEIGHT) {
-      dy = -dy
-    }
+    // if (y - BALL_SIZE < 0 || y + BALL_SIZE > CANVAS_HEIGHT) {
+    //   dy = -dy
+    // }
+
+    if (steps > maxSteps) break
   }
 
   return Math.max(BALL_SIZE, Math.min(CANVAS_WIDTH - BALL_SIZE, x))

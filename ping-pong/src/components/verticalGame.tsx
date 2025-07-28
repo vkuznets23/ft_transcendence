@@ -62,9 +62,15 @@ const VerticalPongGame: React.FC = () => {
   const [paddleSizeOption, setPaddleSizeOption] =
     useState<PaddleSizeOption>('medium')
   const [difficulty, setDifficulty] = useState<DifficultyOption>('easy')
-  const [obstacle, setObstacle] = useState<Obstacle>(() =>
-    generateRandomObstacle(canvasSize.width, canvasSize.height)
-  )
+  // const [obstacle, setObstacle] = useState<Obstacle>(() =>
+  //   generateRandomObstacle(canvasSize.width, canvasSize.height)
+  // )
+  const [obstacle, setObstacle] = useState<Obstacle | null>(() => {
+    if (difficulty === 'medium' || difficulty === 'hard') {
+      return generateRandomObstacle(canvasSize.width, canvasSize.height)
+    }
+    return null
+  })
 
   const paddleWidth = PADDLE_HEIGHT_MAP[paddleSizeOption]
 
@@ -141,8 +147,10 @@ const VerticalPongGame: React.FC = () => {
     ballSpeedX.current = 3 * (Math.random() > 0.5 ? 1 : -1)
     ballSpeedY.current = 5 * (Math.random() > 0.5 ? 1 : -1)
 
-    if (difficulty === 'hard') {
+    if (difficulty === 'medium' || difficulty === 'hard') {
       setObstacle(generateRandomObstacle(canvasSize.width, canvasSize.height))
+    } else {
+      setObstacle(null)
     }
   }, [canvasSize.height, canvasSize.width, difficulty])
 
@@ -168,7 +176,9 @@ const VerticalPongGame: React.FC = () => {
     const ballTop = ballY.current - BALL_SIZE
     const ballBottom = ballY.current + BALL_SIZE
 
+    if (!currentObstacle) return
     const { x: ox, y: oy, width: ow, height: oh } = currentObstacle
+
     const obstacleLeft = ox
     const obstacleRight = ox + ow
     const obstacleTop = oy
