@@ -45,15 +45,13 @@ const VerticalPongGame: React.FC = () => {
   useEffect(() => {
     const handleResize = () => {
       const screenWidth = window.innerWidth
-
-      // Максимальный размер канваса (ориентирован по ширине)
       const width = Math.min(screenWidth - 32, VERTICAL_CANVAS_WIDTH) - 10
       const height = (VERTICAL_CANVAS_HEIGHT / VERTICAL_CANVAS_WIDTH) * width
 
       setCanvasSize({ width, height })
     }
 
-    handleResize() // вызываем сразу
+    handleResize()
     window.addEventListener('resize', handleResize)
 
     return () => {
@@ -108,15 +106,34 @@ const VerticalPongGame: React.FC = () => {
 
   useEffect(() => {
     paddleHeightRef.current = PADDLE_HEIGHT_MAP[paddleSizeOption]
-    player1X.current = Math.min(
-      player1X.current,
-      CANVAS_HEIGHT - paddleHeightRef.current
-    )
-    player2X.current = Math.min(
-      player2X.current,
-      CANVAS_HEIGHT - paddleHeightRef.current
-    )
-  }, [paddleSizeOption])
+
+    const maxPosition = canvasSize.width - paddleHeightRef.current
+
+    player1X.current = Math.min(player1X.current, maxPosition)
+    player2X.current = Math.min(player2X.current, maxPosition)
+  }, [paddleSizeOption, canvasSize.width])
+
+  useEffect(() => {
+    if (difficulty !== 'hard') return
+
+    let intervalId: NodeJS.Timeout | null = null
+
+    const maybeStartInterval = () => {
+      if (isRunningRef.current) {
+        intervalId = setInterval(() => {
+          setObstacle(
+            generateRandomObstacle(canvasSize.width, canvasSize.height)
+          )
+        }, 3000)
+      }
+    }
+
+    maybeStartInterval()
+
+    return () => {
+      if (intervalId) clearInterval(intervalId)
+    }
+  }, [canvasSize.height, canvasSize.width, difficulty, isRunning])
 
   const resetBall = useCallback(() => {
     ballX.current = canvasSize.width / 2
@@ -254,7 +271,7 @@ const VerticalPongGame: React.FC = () => {
       playPong()
     }
 
-    if (difficulty === 'hard') {
+    if (difficulty === 'hard' || difficulty === 'medium') {
       checkBallObstacleCollision()
     }
 
@@ -340,11 +357,9 @@ const VerticalPongGame: React.FC = () => {
     ballSpeedX,
     ballSpeedY,
     setLeftPressed: (val) => {
-      console.log('AI setUpPressed', val)
       aiUpPressedRef.current = val
     },
     setRightPressed: (val) => {
-      console.log('AI setDownPressed', val)
       aiDownPressedRef.current = val
     },
     enabled: opponentType === 'ai',
@@ -409,7 +424,7 @@ const VerticalPongGame: React.FC = () => {
           scoreRight={score2State}
           opponentType={opponentType}
           showPlayer="left"
-          isMobile={isMobile} // boolean, который можно получить из хука useMediaQuery или по window.innerWidth
+          isMobile={isMobile}
         >
           <ControlsPanel
             isRunning={isRunning}

@@ -66,11 +66,11 @@ export function drawVerticalScene({
     ctx.fillStyle = 'red'
     ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height)
   }
-  // if (obstacle) {
-  //   const { x, y, width, height } = obstacle
-  //   ctx.fillStyle = '#888'
-  //   ctx.fillRect(x, y, width, height)
-  // }
+  if (obstacle) {
+    const { x, y, width, height } = obstacle
+    ctx.fillStyle = '#888'
+    ctx.fillRect(x, y, width, height)
+  }
 
   // Мяч
   ctx.fillStyle = 'white'

@@ -123,7 +123,6 @@ const PongGame: React.FC = () => {
 
     maybeStartInterval()
 
-    // Очистка при размонтировании или при изменении состояния
     return () => {
       if (intervalId) clearInterval(intervalId)
     }
