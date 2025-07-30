@@ -2,7 +2,7 @@ import React from 'react'
 import player1 from '../assets/images/playerLeft.png'
 import player2 from '../assets/images/playerRight.png'
 import playerAI from '../assets/images/playerAI.png'
-import { type AIDifficultyOption, type DifficultyOption } from './game'
+import type { AIDifficultyOption, DifficultyOption } from '../types/types'
 
 type PaddleSizeOption = 'small' | 'medium' | 'large'
 type OpponentType = 'player' | 'ai'

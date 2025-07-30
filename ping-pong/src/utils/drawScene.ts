@@ -1,5 +1,5 @@
 import { Obstacle } from './generateObstacle'
-import { type DifficultyOption } from '../components/game'
+import { type DifficultyOption } from '../types/types'
 
 interface DrawSceneParams {
   ctx: CanvasRenderingContext2D

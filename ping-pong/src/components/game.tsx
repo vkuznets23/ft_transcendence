@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import { useRef, useEffect, useCallback } from 'react'
 
 // UI Components
@@ -23,14 +22,9 @@ import {
   PADDLE_WIDTH,
   BALL_SIZE,
   MAX_SCORE,
-  PADDLE_HEIGHT_MAP,
   MAX_SPEED,
 } from '../utils/constants'
 import { resetBall } from '../utils/resetBall'
-
-export type PaddleSizeOption = keyof typeof PADDLE_HEIGHT_MAP
-export type DifficultyOption = 'easy' | 'medium' | 'hard'
-export type AIDifficultyOption = 'easy' | 'hard'
 
 const PongGame = () => {
   // Global Game State
@@ -110,12 +104,7 @@ const PongGame = () => {
 
   // Adjust paddle height based on screen orientation
   useEffect(() => {
-    const isVertical = window.innerHeight > window.innerWidth
-    if (isVertical) {
-      updatePaddleHeight()
-    }
-
-    paddleHeightRef.current = PADDLE_HEIGHT_MAP[paddleSizeOption]
+    updatePaddleHeight()
     player1Y.current = Math.min(
       player1Y.current,
       CANVAS_HEIGHT - paddleHeightRef.current
@@ -124,7 +113,7 @@ const PongGame = () => {
       player2Y.current,
       CANVAS_HEIGHT - paddleHeightRef.current
     )
-  }, [paddleSizeOption])
+  }, [paddleHeightRef, paddleSizeOption, updatePaddleHeight])
 
   // Obstacle generation for hard difficulty
   useEffect(() => {
@@ -144,7 +133,7 @@ const PongGame = () => {
     return () => {
       if (intervalId) clearInterval(intervalId)
     }
-  }, [difficulty, isRunning])
+  }, [difficulty, isRunning, isRunningRef, setObstacle])
 
   // Reset the ball to center
   const onResetBall = useCallback(
@@ -305,7 +294,25 @@ const PongGame = () => {
         onResetBall()
       }
     }
-  }, [difficulty, opponentType, checkBallObstacleCollision])
+  }, [
+    isRunningRef,
+    wPressed,
+    sPressed,
+    paddleHeightRef,
+    opponentType,
+    difficulty,
+    upPressed,
+    downPressed,
+    playPong,
+    checkBallObstacleCollision,
+    setScore1State,
+    setScore2State,
+    setIsRunning,
+    playGameOver,
+    setGameOver,
+    playAddPoint,
+    onResetBall,
+  ])
 
   // Drawing function
   const drawScene = useCallback(
@@ -327,7 +334,7 @@ const PongGame = () => {
         obstacle: obstacle || undefined,
       })
     },
-    [obstacle, difficulty]
+    [paddleHeightRef, difficulty, obstacle]
   )
 
   useGameLoop({
@@ -349,7 +356,7 @@ const PongGame = () => {
     } else {
       setShowPauseModal(false)
     }
-  }, [])
+  }, [isRunningRef, setIsRunning, setShowPauseModal])
 
   const handleContinueFromPause = () => {
     setShowPauseModal(false)

@@ -68,7 +68,7 @@ const VerticalPongGame: React.FC = () => {
   } = useGameState(canvasSize.width, canvasSize.height)
 
   const { playAddPoint, playGameOver, playGameStart, playPong } =
-    useGameSounds(true)
+    useGameSounds(isSoundOn)
 
   // Game references (positions, speed, etc.)
   const player1X = useRef(canvasSize.width / 2)

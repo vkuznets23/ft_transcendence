@@ -1,5 +1,5 @@
 import { Obstacle } from './generateObstacle'
-import { type DifficultyOption } from '../components/game'
+import { type DifficultyOption } from '../types/types'
 
 const PADDLE_THICKNESS = 10
 const paddleOffset = 10

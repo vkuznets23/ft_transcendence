@@ -1,4 +1,4 @@
-import { DifficultyOption } from '../components/game'
+import { DifficultyOption } from '../types/types'
 import { CANVAS_HEIGHT, CANVAS_WIDTH } from './constants'
 import { generateRandomObstacle, Obstacle } from './generateObstacle'
 

@@ -1,11 +1,11 @@
 import { useState, useRef, useCallback } from 'react'
 import { PADDLE_HEIGHT_MAP } from '../utils/constants'
 import { generateRandomObstacle, Obstacle } from '../utils/generateObstacle'
-import {
+import type {
   AIDifficultyOption,
   DifficultyOption,
   PaddleSizeOption,
-} from '../components/game'
+} from '../types/types'
 
 export function useGameState(canvasWidth: number, canvasHeight: number) {
   const [isRunning, setIsRunning] = useState(false)
