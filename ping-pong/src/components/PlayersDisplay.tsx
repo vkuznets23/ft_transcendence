@@ -1,7 +1,9 @@
 import { HeartDisplay } from './Heartdisplay'
+import trophyIcon from '../assets/images/winner.png'
 import player1 from '../assets/images/playerLeft.png'
 import player2 from '../assets/images/playerRight.png'
 import playerAI from '../assets/images/playerAI.png'
+import { IsTournament } from '../types/types'
 
 interface PlayersDisplayProps {
   scoreLeft: number
@@ -10,6 +12,9 @@ interface PlayersDisplayProps {
   isMobile?: boolean
   children?: React.ReactNode
   showPlayer?: 'left' | 'right'
+  gameMode?: IsTournament
+  tournamentWinsLeft?: number
+  tournamentWinsRight?: number
 }
 
 export const PlayersDisplay: React.FC<PlayersDisplayProps> = ({
@@ -19,6 +24,9 @@ export const PlayersDisplay: React.FC<PlayersDisplayProps> = ({
   isMobile = false,
   children,
   showPlayer,
+  gameMode,
+  tournamentWinsLeft,
+  tournamentWinsRight,
 }) => {
   if (isMobile) {
     const isLeft = showPlayer === 'left'
@@ -55,13 +63,33 @@ export const PlayersDisplay: React.FC<PlayersDisplayProps> = ({
     <div className="flex items-center justify-between w-full max-w-4xl px-4 gap-10">
       <div className="flex items-center gap-5">
         <img src={player1} alt="player1" className="h-[40px]" />
-        <HeartDisplay score={scoreLeft} player="left" />
+        <div className="flex flex-col items-left gap-1">
+          <HeartDisplay score={scoreLeft} player="left" />
+          {gameMode === 'tournament' && (
+            <div className="flex items-center gap-1 mt-1">
+              <img src={trophyIcon} alt="Trophy" className="h-[18px]" />
+              <span className="text-white text-sm">
+                {tournamentWinsRight ?? 0}
+              </span>
+            </div>
+          )}
+        </div>
       </div>
 
       <div>{children}</div>
 
       <div className="flex items-center gap-5">
-        <HeartDisplay score={scoreRight} player="right" />
+        <div className="flex flex-col items-end gap-1">
+          <HeartDisplay score={scoreRight} player="right" />
+          {gameMode === 'tournament' && (
+            <div className="flex items-center gap-1 mt-1">
+              <img src={trophyIcon} alt="Trophy" className="h-[18px]" />
+              <span className="text-white text-sm">
+                {tournamentWinsLeft ?? 0}
+              </span>
+            </div>
+          )}
+        </div>
         {opponentType === 'ai' ? (
           <img src={playerAI} alt="player AI" className="h-[40px]" />
         ) : (

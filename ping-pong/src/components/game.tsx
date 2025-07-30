@@ -511,8 +511,6 @@ const PongGame = () => {
           <p>
             🏆 Tournament: Round {currentRound} out of {totalRounds}
           </p>
-          <p>Player 1: {tournamentWins.player1} wins</p>
-          <p>Player 2: {tournamentWins.player2} wins</p>
         </div>
       )}
       <GameSettingsModal
@@ -557,6 +555,9 @@ const PongGame = () => {
           scoreLeft={score2State}
           scoreRight={score1State}
           opponentType={opponentType}
+          gameMode={gameMode}
+          tournamentWinsLeft={tournamentWins.player2}
+          tournamentWinsRight={tournamentWins.player1}
         >
           <ControlsPanel
             isRunning={isRunning}
