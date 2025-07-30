@@ -1,9 +1,21 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useRef, useEffect, useState, useCallback } from 'react'
+import React, { useRef, useEffect, useCallback } from 'react'
+
+// UI Components
 import GameSettingsModal from './TogglableModal'
-import { generateRandomObstacle, Obstacle } from '../utils/generateObstacle'
+import ControlsPanel from './ControllsPannel'
+import PauseModal from './PauseModal'
+import { PlayersDisplay } from './PlayersDisplay'
+
+// Hooks
+import { useGameSounds } from '../hooks/useGameSounds'
 import { useGameLoop } from '../hooks/useGameLoop'
 import { usePlayerControls } from '../hooks/usePlayerControls'
+import { useAIPlayer } from '../hooks/useAIPlayer'
+import { useGameState } from '../hooks/useGameStates'
+
+// Utils
+import { generateRandomObstacle } from '../utils/generateObstacle'
 import { drawScene as externalDrawScene } from '../utils/drawScene'
 import {
   CANVAS_WIDTH,
@@ -14,35 +26,51 @@ import {
   PADDLE_HEIGHT_MAP,
   MAX_SPEED,
 } from '../utils/constants'
-import ControlsPanel from './ControllsPannel'
 import { resetBall } from '../utils/resetBall'
-import { useGameSounds } from '../hooks/useGameSounds'
-import { useAIPlayer } from '../hooks/useAIPlayer'
-import PauseModal from './PauseModal'
-import { PlayersDisplay } from './PlayersDisplay'
 
 export type PaddleSizeOption = keyof typeof PADDLE_HEIGHT_MAP
 export type DifficultyOption = 'easy' | 'medium' | 'hard'
 export type AIDifficultyOption = 'easy' | 'hard'
 
-const PongGame: React.FC = () => {
-  const [showModal, setShowModal] = useState(true)
-  const [gameOver, setGameOver] = useState(false)
-  const [isSoundOn, setIsSoundOn] = useState(true)
-  const [showPauseModal, setShowPauseModal] = useState(false)
+const PongGame = () => {
+  // Global Game State
+  const {
+    isRunning,
+    setIsRunning,
+    showModal,
+    setShowModal,
+    gameOver,
+    setGameOver,
+    opponentType,
+    setOpponentType,
+    isSoundOn,
+    setIsSoundOn,
+    showPauseModal,
+    setShowPauseModal,
+    AIdifficulty,
+    setAIDifficulty,
+    paddleSizeOption,
+    setPaddleSizeOption,
+    difficulty,
+    setDifficulty,
+    score1State,
+    setScore1State,
+    score2State,
+    setScore2State,
+    obstacle,
+    setObstacle,
+    isRunningRef,
+    paddleHeightRef,
+    updatePaddleHeight,
+  } = useGameState(CANVAS_WIDTH, CANVAS_HEIGHT)
 
   const { playAddPoint, playGameOver, playGameStart, playPong } =
     useGameSounds(isSoundOn)
 
-  const [opponentType, setOpponentType] = useState<'player' | 'ai'>('player')
-
-  const [score1State, setScore1State] = useState(0)
-  const [score2State, setScore2State] = useState(0)
-
-  // --- Refs для управления состоянием игры ---
+  // Canvas reference
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
 
-  // Клавиши для игроков
+  // Player control keys
   const {
     upPressed,
     downPressed,
@@ -52,6 +80,7 @@ const PongGame: React.FC = () => {
     handleKeyUp,
   } = usePlayerControls()
 
+  // Register keyboard listeners
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown)
     window.addEventListener('keyup', handleKeyUp)
@@ -61,42 +90,31 @@ const PongGame: React.FC = () => {
     }
   }, [handleKeyDown, handleKeyUp])
 
-  const isRunningRef = useRef(false)
-
+  // Game references (positions, speed, etc.)
   const aiUpPressedRef = useRef(false)
   const aiDownPressedRef = useRef(false)
 
-  // Позиции и скорости
   const player1Y = useRef(CANVAS_HEIGHT / 2)
   const player2Y = useRef(CANVAS_HEIGHT / 2)
 
   const ballX = useRef(CANVAS_WIDTH / 2)
   const ballY = useRef(CANVAS_HEIGHT / 2)
-
   const ballSpeedX = useRef(5 * (Math.random() > 0.5 ? 1 : -1))
   const ballSpeedY = useRef(3 * (Math.random() > 0.5 ? 1 : -1))
 
   const score1 = useRef(0)
   const score2 = useRef(0)
 
-  // --- Состояния для UI ---
-  const [isRunning, setIsRunning] = useState(false)
-  const [paddleSizeOption, setPaddleSizeOption] =
-    useState<PaddleSizeOption>('medium')
-  const [difficulty, setDifficulty] = useState<DifficultyOption>('easy')
-  const [AIdifficulty, setAIDifficulty] = useState<AIDifficultyOption>('easy')
-  const [obstacle, setObstacle] = useState<Obstacle>(() =>
-    generateRandomObstacle(CANVAS_WIDTH, CANVAS_HEIGHT)
-  )
-
-  // Текущий размер ракетки
-  const paddleHeightRef = useRef(PADDLE_HEIGHT_MAP[paddleSizeOption])
-
   const rightPaddleYRef = player2Y
   const rightPaddleHeight = paddleHeightRef.current
 
-  // Синхронизируем paddleHeight и позиции игроков при смене размера ракетки
+  // Adjust paddle height based on screen orientation
   useEffect(() => {
+    const isVertical = window.innerHeight > window.innerWidth
+    if (isVertical) {
+      updatePaddleHeight()
+    }
+
     paddleHeightRef.current = PADDLE_HEIGHT_MAP[paddleSizeOption]
     player1Y.current = Math.min(
       player1Y.current,
@@ -108,9 +126,9 @@ const PongGame: React.FC = () => {
     )
   }, [paddleSizeOption])
 
+  // Obstacle generation for hard difficulty
   useEffect(() => {
     if (difficulty !== 'hard') return
-
     let intervalId: NodeJS.Timeout | null = null
 
     const maybeStartInterval = () => {
@@ -128,9 +146,7 @@ const PongGame: React.FC = () => {
     }
   }, [difficulty, isRunning])
 
-  // --- Основная логика ---
-
-  // Сброс мяча в центр + рандомная скорость
+  // Reset the ball to center
   const onResetBall = useCallback(
     (isRestart = false) => {
       resetBall(
@@ -146,9 +162,11 @@ const PongGame: React.FC = () => {
     [difficulty, setObstacle]
   )
 
-  // Коллизия мяча с препятствием
+  // Collision with obstacle
   const checkBallObstacleCollision = useCallback(() => {
     const currentObstacle = obstacle
+
+    if (!currentObstacle) return
 
     const ballLeft = ballX.current - BALL_SIZE
     const ballRight = ballX.current + BALL_SIZE
@@ -204,11 +222,11 @@ const PongGame: React.FC = () => {
     }
   }, [obstacle, playPong])
 
-  // Обновление позиции игроков и мяча
+  // Update positions of all game elements
   const updatePositions = useCallback(() => {
     if (!isRunningRef.current) return
 
-    // Игрок 1 - управление W/S
+    // Player 1 movement with W/S
     if (wPressed.current) player1Y.current -= 7
     if (sPressed.current) player1Y.current += 7
     player1Y.current = Math.max(
@@ -216,32 +234,24 @@ const PongGame: React.FC = () => {
       Math.min(player1Y.current, CANVAS_HEIGHT - paddleHeightRef.current)
     )
 
-    // Игрок 2 - управление стрелками
+    // Player 2 movement with arrows (player or AI)
     if (opponentType === 'player') {
       if (upPressed.current) player2Y.current -= 7
       if (downPressed.current) player2Y.current += 7
-      player2Y.current = Math.max(
-        0,
-        Math.min(player2Y.current, CANVAS_HEIGHT - paddleHeightRef.current)
-      )
-    }
-
-    if (opponentType === 'ai') {
+    } else {
       if (aiUpPressedRef.current) player2Y.current -= 7
       if (aiDownPressedRef.current) player2Y.current += 7
-
-      // Ограничение позиции
-      player2Y.current = Math.max(
-        0,
-        Math.min(player2Y.current, CANVAS_HEIGHT - paddleHeightRef.current)
-      )
     }
+    player2Y.current = Math.max(
+      0,
+      Math.min(player2Y.current, CANVAS_HEIGHT - paddleHeightRef.current)
+    )
 
-    // Обновляем позицию мяча
+    // Ball movement
     ballX.current += ballSpeedX.current
     ballY.current += ballSpeedY.current
 
-    // Отскок от стен сверху/снизу
+    // Wall collision
     if (
       ballY.current - BALL_SIZE < 0 ||
       ballY.current + BALL_SIZE > CANVAS_HEIGHT
@@ -253,56 +263,39 @@ const PongGame: React.FC = () => {
       playPong()
     }
 
-    // Отскок от ракеток
-    if (
+    // Paddle collisions
+    const hitPaddle1 =
       ballX.current - BALL_SIZE < PADDLE_WIDTH &&
       ballY.current > player1Y.current &&
       ballY.current < player1Y.current + paddleHeightRef.current
-    ) {
-      ballSpeedX.current *= -1.05
-      if (Math.abs(ballSpeedX.current) > MAX_SPEED) {
-        ballSpeedX.current = MAX_SPEED * Math.sign(ballSpeedX.current)
-      }
-      ballX.current = PADDLE_WIDTH + BALL_SIZE
-      playPong()
-    }
 
-    if (
+    const hitPaddle2 =
       ballX.current + BALL_SIZE > CANVAS_WIDTH - PADDLE_WIDTH &&
       ballY.current > player2Y.current &&
       ballY.current < player2Y.current + paddleHeightRef.current
-    ) {
+    if (hitPaddle1 || hitPaddle2) {
       ballSpeedX.current *= -1.05
-      if (Math.abs(ballSpeedX.current) > MAX_SPEED) {
-        ballSpeedX.current = MAX_SPEED * Math.sign(ballSpeedX.current)
-      }
-      ballX.current = CANVAS_WIDTH - PADDLE_WIDTH - BALL_SIZE
+      ballSpeedX.current =
+        Math.sign(ballSpeedX.current) *
+        Math.min(Math.abs(ballSpeedX.current), MAX_SPEED)
+      ballX.current += hitPaddle1 ? 10 : -10
       playPong()
     }
 
-    // Коллизия с препятствием (если сложно)
+    // Obstacle collision (for medium/hard difficulties)
     if (difficulty === 'hard' || difficulty === 'medium') {
       checkBallObstacleCollision()
     }
 
-    // Голы
-    if (ballX.current < 0) {
-      score2.current += 1
-      setScore2State(score2.current)
+    // Scoring
+    if (ballX.current < 0 || ballX.current > CANVAS_WIDTH) {
+      const isPlayer1Goal = ballX.current > CANVAS_WIDTH
+      const scorer = isPlayer1Goal ? score1 : score2
+      const setScore = isPlayer1Goal ? setScore1State : setScore2State
+      const score = ++scorer.current
 
-      if (score2.current >= MAX_SCORE) {
-        isRunningRef.current = false
-        setIsRunning(false)
-        playGameOver()
-        setGameOver(true)
-      } else {
-        playAddPoint()
-        onResetBall()
-      }
-    } else if (ballX.current > CANVAS_WIDTH) {
-      score1.current += 1
-      setScore1State(score1.current)
-      if (score1.current >= MAX_SCORE) {
+      setScore(score)
+      if (score >= MAX_SCORE) {
         isRunningRef.current = false
         setIsRunning(false)
         playGameOver()
@@ -312,21 +305,9 @@ const PongGame: React.FC = () => {
         onResetBall()
       }
     }
-  }, [
-    wPressed,
-    sPressed,
-    upPressed,
-    downPressed,
-    difficulty,
-    checkBallObstacleCollision,
-    resetBall,
-    opponentType,
-    playPong,
-    playAddPoint,
-    playGameOver,
-  ])
+  }, [difficulty, opponentType, checkBallObstacleCollision])
 
-  // Рисуем сцену
+  // Drawing function
   const drawScene = useCallback(
     (ctx: CanvasRenderingContext2D) => {
       externalDrawScene({
@@ -343,13 +324,12 @@ const PongGame: React.FC = () => {
         ballX: ballX.current,
         ballY: ballY.current,
         difficulty,
-        obstacle,
+        obstacle: obstacle || undefined,
       })
     },
     [obstacle, difficulty]
   )
 
-  // main loop of the game
   useGameLoop({
     canvasRef,
     isRunningRef,
@@ -359,16 +339,14 @@ const PongGame: React.FC = () => {
     handleKeyUp,
   })
 
-  // Кнопка Старт/Пауза
+  // Toggle pause/play
   const toggleRunning = useCallback(() => {
     const next = !isRunningRef.current
     isRunningRef.current = next
     setIsRunning(next)
     if (!next) {
-      // Если поставили игру на паузу — показать модалку
       setShowPauseModal(true)
     } else {
-      // Если возобновляем игру — скрыть модалку
       setShowPauseModal(false)
     }
   }, [])
@@ -406,6 +384,7 @@ const PongGame: React.FC = () => {
     }
   }, [showModal, toggleRunning])
 
+  // AI logic
   useAIPlayer({
     isRunningRef,
     AIdifficulty,
@@ -416,11 +395,9 @@ const PongGame: React.FC = () => {
     ballSpeedX,
     ballSpeedY,
     setUpPressed: (val) => {
-      console.log('AI setUpPressed', val)
       aiUpPressedRef.current = val
     },
     setDownPressed: (val) => {
-      console.log('AI setDownPressed', val)
       aiDownPressedRef.current = val
     },
     enabled: opponentType === 'ai',

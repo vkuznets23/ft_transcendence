@@ -19,6 +19,8 @@ import { useAIPlayerVertical } from '../hooks/useAIPlayer'
 import PauseModal from './PauseModal'
 import { PlayersDisplay } from './PlayersDisplay'
 
+// import { useGameState } from '../hooks/useGameState'
+
 const VERTICAL_CANVAS_WIDTH = CANVAS_HEIGHT
 const VERTICAL_CANVAS_HEIGHT = CANVAS_WIDTH
 

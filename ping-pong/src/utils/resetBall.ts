@@ -8,7 +8,7 @@ export const resetBall = (
   ballSpeedXRef: { current: number },
   ballSpeedYRef: { current: number },
   difficulty: DifficultyOption,
-  setObstacle: React.Dispatch<React.SetStateAction<Obstacle>>,
+  setObstacle: React.Dispatch<React.SetStateAction<Obstacle | null>>,
   isRestart: boolean
 ) => {
   ballXRef.current = CANVAS_WIDTH / 2
@@ -16,7 +16,7 @@ export const resetBall = (
   ballSpeedXRef.current = 5 * (Math.random() > 0.5 ? 1 : -1)
   ballSpeedYRef.current = 3 * (Math.random() > 0.5 ? 1 : -1)
 
-  if (!isRestart && (difficulty === 'medium' || difficulty === 'hard')) {
+  if (difficulty === 'medium' || difficulty === 'hard') {
     setObstacle(generateRandomObstacle(CANVAS_WIDTH, CANVAS_HEIGHT))
   }
 }
