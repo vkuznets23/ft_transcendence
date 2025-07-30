@@ -2,7 +2,11 @@ import React from 'react'
 import player1 from '../assets/images/playerLeft.png'
 import player2 from '../assets/images/playerRight.png'
 import playerAI from '../assets/images/playerAI.png'
-import type { AIDifficultyOption, DifficultyOption } from '../types/types'
+import type {
+  AIDifficultyOption,
+  DifficultyOption,
+  IsTournament,
+} from '../types/types'
 
 type PaddleSizeOption = 'small' | 'medium' | 'large'
 type OpponentType = 'player' | 'ai'
@@ -20,6 +24,8 @@ interface GameSettingsModalProps {
   onStart: () => void
   opponentType: OpponentType
   onOpponentTypeChange: (value: OpponentType) => void
+  isTournament: IsTournament
+  setIsTournament: (value: IsTournament) => void
 }
 
 const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
@@ -35,6 +41,8 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
   onStart,
   opponentType,
   onOpponentTypeChange,
+  isTournament,
+  setIsTournament,
 }) => {
   if (!show) return null
 
@@ -48,7 +56,7 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
               onClick={() => onOpponentTypeChange('player')}
               disabled={isRunning}
               className={`px-4 py-2 rounded-md border border-white text-white ${
-                opponentType === 'player' ? '' : 'opacity-40'
+                opponentType === 'player' ? '' : 'opacity-40 hover:opacity-60'
               } disabled:opacity-50`}
             >
               <div className="flex items-center gap-2">
@@ -68,7 +76,7 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
               onClick={() => onOpponentTypeChange('ai')}
               disabled={isRunning}
               className={`px-4 py-2 rounded-md border border-white text-white ${
-                opponentType === 'ai' ? '' : 'opacity-40'
+                opponentType === 'ai' ? '' : 'opacity-40 hover:opacity-60'
               } disabled:opacity-50`}
             >
               <div className="flex items-center gap-2">
@@ -145,11 +153,45 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
           </select>
         </div>
 
+        {/* Tournament */}
+        <div className="mb-6">
+          <div className="mb-6 flex items-center justify-between gap-4">
+            <label className={`font-medium text-white min-w-[140px] text-left`}>
+              Play tournament?
+            </label>
+
+            <button
+              onClick={() => setIsTournament('CasualGame')}
+              className={`px-6 py-2 rounded-lg border-2 font-semibold border-white text-white transition-opacity duration-300
+    ${
+      isTournament === 'CasualGame'
+        ? 'opacity-100'
+        : 'opacity-40 hover:opacity-60'
+    }
+  `}
+            >
+              no
+            </button>
+            <button
+              onClick={() => setIsTournament('tournament')}
+              className={`px-6 py-2 rounded-lg border-2 font-semibold border-white text-white transition-opacity duration-300
+    ${
+      isTournament === 'tournament'
+        ? 'opacity-100'
+        : 'opacity-40 hover:opacity-60'
+    }
+  `}
+            >
+              yes
+            </button>
+          </div>
+        </div>
+
         {/* Start Button */}
         <button
           onClick={onStart}
           disabled={isRunning}
-          className="mt-4 px-6 py-2 bg-white text-black font-semibold border border-white rounded-md hover:bg-opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="mt-4 w-full px-6 py-2 bg-white text-black font-semibold border border-white rounded-md hover:bg-opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {buttonText}
         </button>

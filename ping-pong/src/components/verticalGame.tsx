@@ -38,6 +38,14 @@ const VerticalPongGame: React.FC = () => {
 
   // Global Game State
   const {
+    // tournamentWins,
+    // setTournamentWins,
+    // currentRound,
+    // setCurrentRound,
+    // totalRounds,
+    // setTotalRounds,
+    gameMode,
+    setGameMode,
     isRunning,
     setIsRunning,
     showModal,
@@ -459,6 +467,8 @@ const VerticalPongGame: React.FC = () => {
           onDifficultyChange={setDifficulty}
           onAIDifficultyChange={setAIDifficulty}
           onStart={startGameFromModal}
+          isTournament={gameMode}
+          setIsTournament={setGameMode}
         />
 
         <canvas

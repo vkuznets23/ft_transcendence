@@ -8,6 +8,20 @@ import type {
 } from '../types/types'
 
 export function useGameState(canvasWidth: number, canvasHeight: number) {
+  const [gameMode, setGameMode] = useState<'CasualGame' | 'tournament'>(
+    'CasualGame'
+  )
+  const [tournamentWins, setTournamentWins] = useState({
+    player1: 0,
+    player2: 0,
+  })
+  const [showRoundResultModal, setShowRoundResultModal] = useState(false)
+  const [roundWinner, setRoundWinner] = useState<'player1' | 'player2' | null>(
+    null
+  )
+  const [currentRound, setCurrentRound] = useState(1)
+  const [totalRounds, setTotalRounds] = useState(3)
+
   const [isRunning, setIsRunning] = useState(false)
   const [showModal, setShowModal] = useState(true)
   const [gameOver, setGameOver] = useState(false)
@@ -38,6 +52,18 @@ export function useGameState(canvasWidth: number, canvasHeight: number) {
 
   return {
     // States
+    showRoundResultModal,
+    setShowRoundResultModal,
+    roundWinner,
+    setRoundWinner,
+    tournamentWins,
+    setTournamentWins,
+    currentRound,
+    setCurrentRound,
+    totalRounds,
+    setTotalRounds,
+    gameMode,
+    setGameMode,
     isRunning,
     setIsRunning,
     showModal,
