@@ -49,54 +49,90 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50">
       <div className="bg-black border border-white p-8 rounded-2xl text-center min-w-[300px]">
-        {/* Opponent */}
+        {/* Tournament */}
         <div className="mb-6">
-          <div className="flex justify-center space-x-4">
+          <div className="mb-6 flex items-center justify-between gap-4">
+            <label className={`font-medium text-white min-w-[140px] text-left`}>
+              Play tournament?
+            </label>
+
             <button
-              onClick={() => onOpponentTypeChange('player')}
-              disabled={isRunning}
-              className={`px-4 py-2 rounded-md border border-white text-white ${
-                opponentType === 'player' ? '' : 'opacity-40 hover:opacity-60'
-              } disabled:opacity-50`}
+              onClick={() => setIsTournament('CasualGame')}
+              className={`px-6 py-2 rounded-lg border-2 font-semibold border-white text-white transition-opacity duration-300
+    ${
+      isTournament === 'CasualGame'
+        ? 'opacity-100'
+        : 'opacity-40 hover:opacity-60'
+    }
+  `}
             >
-              <div className="flex items-center gap-2">
-                <img
-                  src={player1}
-                  alt="player1"
-                  className="flex justify-start h-[40px]"
-                />
-                <img
-                  src={player2}
-                  alt="player1"
-                  className="flex justify-start h-[40px]"
-                />
-              </div>
+              no
             </button>
             <button
-              onClick={() => onOpponentTypeChange('ai')}
-              disabled={isRunning}
-              className={`px-4 py-2 rounded-md border border-white text-white ${
-                opponentType === 'ai' ? '' : 'opacity-40 hover:opacity-60'
-              } disabled:opacity-50`}
+              onClick={() => setIsTournament('tournament')}
+              className={`px-6 py-2 rounded-lg border-2 font-semibold border-white text-white transition-opacity duration-300
+    ${
+      isTournament === 'tournament'
+        ? 'opacity-100'
+        : 'opacity-40 hover:opacity-60'
+    }
+  `}
             >
-              <div className="flex items-center gap-2">
-                <img
-                  src={player1}
-                  alt="player1"
-                  className="flex justify-start h-[40px]"
-                />
-                <img
-                  src={playerAI}
-                  alt="player1"
-                  className="flex justify-start h-[40px]"
-                />
-              </div>
+              yes
             </button>
           </div>
         </div>
 
+        {/* Opponent */}
+        {isTournament === 'CasualGame' && (
+          <div className="mb-6">
+            <div className="flex justify-center space-x-4">
+              <button
+                onClick={() => onOpponentTypeChange('player')}
+                disabled={isRunning}
+                className={`px-4 w-full  py-2 rounded-md border border-white text-white flex justify-center items-center ${
+                  opponentType === 'player' ? '' : 'opacity-40 hover:opacity-60'
+                } disabled:opacity-50`}
+              >
+                <div className="flex items-center gap-2">
+                  <img
+                    src={player1}
+                    alt="player1"
+                    className="flex justify-start h-[40px]"
+                  />
+                  <img
+                    src={player2}
+                    alt="player1"
+                    className="flex justify-start h-[40px]"
+                  />
+                </div>
+              </button>
+              <button
+                onClick={() => onOpponentTypeChange('ai')}
+                disabled={isRunning}
+                className={`px-4 w-full py-2 rounded-md border border-white text-white flex justify-center items-center ${
+                  opponentType === 'ai' ? '' : 'opacity-40 hover:opacity-60'
+                } disabled:opacity-50`}
+              >
+                <div className="flex items-center gap-2">
+                  <img
+                    src={player1}
+                    alt="player1"
+                    className="flex justify-start h-[40px]"
+                  />
+                  <img
+                    src={playerAI}
+                    alt="player1"
+                    className="flex justify-start h-[40px]"
+                  />
+                </div>
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* AI Difficulty */}
-        {opponentType === 'ai' && (
+        {opponentType === 'ai' && isTournament === 'CasualGame' && (
           <div className="mb-6 flex items-center justify-between gap-4">
             <label className="font-medium text-white min-w-[140px] text-left">
               AI Intelligence:
@@ -151,40 +187,6 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
             <option value="medium">Static Trouble</option>
             <option value="hard">Chaos Mode</option>
           </select>
-        </div>
-
-        {/* Tournament */}
-        <div className="mb-6">
-          <div className="mb-6 flex items-center justify-between gap-4">
-            <label className={`font-medium text-white min-w-[140px] text-left`}>
-              Play tournament?
-            </label>
-
-            <button
-              onClick={() => setIsTournament('CasualGame')}
-              className={`px-6 py-2 rounded-lg border-2 font-semibold border-white text-white transition-opacity duration-300
-    ${
-      isTournament === 'CasualGame'
-        ? 'opacity-100'
-        : 'opacity-40 hover:opacity-60'
-    }
-  `}
-            >
-              no
-            </button>
-            <button
-              onClick={() => setIsTournament('tournament')}
-              className={`px-6 py-2 rounded-lg border-2 font-semibold border-white text-white transition-opacity duration-300
-    ${
-      isTournament === 'tournament'
-        ? 'opacity-100'
-        : 'opacity-40 hover:opacity-60'
-    }
-  `}
-            >
-              yes
-            </button>
-          </div>
         </div>
 
         {/* Start Button */}

@@ -269,6 +269,7 @@ const PongGame = () => {
 
     if (gameMode === 'tournament') {
       setTournamentWins({ player1: 0, player2: 0, player3: 0, player4: 0 })
+      setOpponentType('player')
     }
 
     score1.current = 0

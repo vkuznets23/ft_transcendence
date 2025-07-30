@@ -50,7 +50,11 @@ export const PlayersDisplay: React.FC<PlayersDisplayProps> = ({
   if (isMobile) {
     const isLeft = showPlayer === 'left'
     const rightPlayerImg =
-      opponentType === 'ai' ? playerAI : getPlayerImage(playerRightId)
+      gameMode === 'tournament'
+        ? getPlayerImage(playerRightId)
+        : opponentType === 'ai'
+        ? playerAI
+        : getPlayerImage(playerRightId)
 
     return (
       <div className="flex items-center justify-between w-full max-w-4xl px-4 gap-2">
@@ -99,9 +103,13 @@ export const PlayersDisplay: React.FC<PlayersDisplayProps> = ({
           <HeartDisplay score={scoreRight} player="right" />
         </div>
         <img
-          src={getPlayerImage(
-            opponentType === 'ai' ? 'playerAI' : playerRightId
-          )}
+          src={
+            gameMode === 'tournament'
+              ? getPlayerImage(playerRightId)
+              : opponentType === 'ai'
+              ? playerAI
+              : getPlayerImage(playerRightId)
+          }
           alt="player right"
           className="h-[40px]"
         />
