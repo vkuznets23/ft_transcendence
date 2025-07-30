@@ -54,16 +54,15 @@ const RoundResultModal = ({ winner, onNextRound }: RoundResultModalProps) => {
 const PongGame = () => {
   // Global Game State
   const {
+    finishCurrentMatch,
+    tournament,
+    currentPlayerA,
+    currentPlayerB,
+    setTournamentWins,
     showRoundResultModal,
     setShowRoundResultModal,
     roundWinner,
     setRoundWinner,
-    tournamentWins,
-    setTournamentWins,
-    currentRound,
-    setCurrentRound,
-    totalRounds,
-    // setTotalRounds,
     gameMode,
     setGameMode,
     isRunning,
@@ -248,14 +247,6 @@ const PongGame = () => {
     }
   }, [obstacle, playPong])
 
-  //  tournament
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const resetTournament = () => {
-    setTournamentWins({ player1: 0, player2: 0 })
-    setCurrentRound(1)
-    setGameMode('CasualGame')
-  }
-
   // Toggle pause/play
   const toggleRunning = useCallback(() => {
     const next = !isRunningRef.current
@@ -277,8 +268,7 @@ const PongGame = () => {
     playGameStart()
 
     if (gameMode === 'tournament') {
-      setTournamentWins({ player1: 0, player2: 0 })
-      setCurrentRound(1)
+      setTournamentWins({ player1: 0, player2: 0, player3: 0, player4: 0 })
     }
 
     score1.current = 0
@@ -358,7 +348,6 @@ const PongGame = () => {
       checkBallObstacleCollision()
     }
 
-    console.log('currentRound:', currentRound)
     // Scoring
     if (ballX.current < 0 || ballX.current > CANVAS_WIDTH) {
       const isPlayer1Goal = ballX.current > CANVAS_WIDTH
@@ -373,38 +362,18 @@ const PongGame = () => {
         playGameOver()
 
         if (gameMode === 'tournament') {
-          const winner = isPlayer1Goal ? 'player1' : 'player2'
-          setRoundWinner(winner)
+          const winner = isPlayer1Goal ? currentPlayerA : currentPlayerB
+          setRoundWinner(isPlayer1Goal ? 'player1' : 'player2')
           setShowRoundResultModal(true)
 
-          setTournamentWins((prev) => {
-            const updatedWins = {
-              ...prev,
-              [winner]: prev[winner] + 1,
-            }
-
-            const maxWinsNeeded = Math.ceil(totalRounds / 2)
-            const newWins = updatedWins[winner]
-
-            if (newWins >= maxWinsNeeded) {
-              setGameOver(true)
-              setShowRoundResultModal(false)
-            } else {
-              setCurrentRound(currentRound + 1)
-              setTimeout(() => {
-                onResetBall(true)
-              }, 1000)
-            }
-            score1.current = 0
-            score2.current = 0
-            setScore1State(0)
-            setScore2State(0)
-
-            return updatedWins
-          })
-        } else {
-          setGameOver(true)
-          resetTournament()
+          if (
+            winner === 'player1' ||
+            winner === 'player2' ||
+            winner === 'player3' ||
+            winner === 'player4'
+          ) {
+            finishCurrentMatch(winner)
+          }
         }
       } else {
         playAddPoint()
@@ -418,7 +387,6 @@ const PongGame = () => {
     paddleHeightRef,
     opponentType,
     difficulty,
-    currentRound,
     upPressed,
     downPressed,
     playPong,
@@ -428,15 +396,13 @@ const PongGame = () => {
     setIsRunning,
     playGameOver,
     gameMode,
+    currentPlayerA,
+    currentPlayerB,
     setRoundWinner,
     setShowRoundResultModal,
-    setTournamentWins,
-    totalRounds,
-    setGameOver,
-    setCurrentRound,
-    onResetBall,
-    resetTournament,
+    finishCurrentMatch,
     playAddPoint,
+    onResetBall,
   ])
 
   // Drawing function
@@ -506,13 +472,6 @@ const PongGame = () => {
 
   return (
     <div className="flex flex-col items-center gap-6 p-6 min-h-screen">
-      {gameMode === 'tournament' && (
-        <div className="text-white text-center mb-4">
-          <p>
-            🏆 Tournament: Round {currentRound} out of {totalRounds}
-          </p>
-        </div>
-      )}
       <GameSettingsModal
         buttonText={
           gameOver
@@ -536,6 +495,18 @@ const PongGame = () => {
         setIsTournament={setGameMode}
       />
 
+      {tournament.finished && tournament.matches[2].winner && (
+        <div className="text-white text-2xl font-bold mt-4">
+          Победитель турнира:{' '}
+          {{
+            player1: 'Player 1',
+            player2: 'Player 2',
+            player3: 'Player 3',
+            player4: 'Player 4',
+          }[tournament.matches[2].winner] || 'Неизвестно'}
+        </div>
+      )}
+
       {showPauseModal && <PauseModal onContinue={handleContinueFromPause} />}
       {showRoundResultModal && (
         <RoundResultModal
@@ -546,6 +517,11 @@ const PongGame = () => {
             isRunningRef.current = true
             setIsRunning(true)
             setShowPauseModal(false)
+
+            score1.current = 0
+            score2.current = 0
+            setScore1State(0)
+            setScore2State(0)
           }}
         />
       )}
@@ -556,8 +532,8 @@ const PongGame = () => {
           scoreRight={score1State}
           opponentType={opponentType}
           gameMode={gameMode}
-          tournamentWinsLeft={tournamentWins.player2}
-          tournamentWinsRight={tournamentWins.player1}
+          playerLeftId={currentPlayerA ?? undefined}
+          playerRightId={currentPlayerB ?? undefined}
         >
           <ControlsPanel
             isRunning={isRunning}
