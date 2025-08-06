@@ -164,6 +164,8 @@ const CasualGameModal = ({ winner, onPlayAgain }: CasualGameMofalTypes) => {
 const PongGame = () => {
   // Global Game State
   const {
+    setCurrentPlayerA,
+    setCurrentPlayerB,
     finalStandings,
     setFinalStandings,
     tournamentWinner,
@@ -431,6 +433,9 @@ const PongGame = () => {
         finished: false,
       })
     }
+
+    setCurrentPlayerA('player1')
+    setCurrentPlayerB('player2')
 
     score1.current = 0
     score2.current = 0

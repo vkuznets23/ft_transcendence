@@ -47,7 +47,7 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
   if (!show) return null
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-90 flex justify-center items-center z-50">
       <div className="bg-black border border-white p-8 rounded-2xl text-center min-w-[300px]">
         {/* Tournament */}
         <div className="mb-6">
@@ -193,7 +193,7 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
         <button
           onClick={onStart}
           disabled={isRunning}
-          className="mt-4 w-full px-6 py-2 bg-white text-black font-semibold border border-white rounded-md hover:bg-opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="mt-4 w-full px-6 py-2 bg-yellow-400 text-black font-semibold  rounded-md hover:bg-opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {buttonText}
         </button>

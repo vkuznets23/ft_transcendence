@@ -192,11 +192,26 @@ export function useGameState(canvasWidth: number, canvasHeight: number) {
     }
   }, [tournament.finished, tournament.matches])
 
-  const currentPlayerA = currentMatch?.playerA
-  const currentPlayerB = currentMatch?.playerB
+  const [currentPlayerA, setCurrentPlayerA] = useState<
+    'player1' | 'player2' | 'player3' | 'player4' | undefined
+  >(undefined)
+  const [currentPlayerB, setCurrentPlayerB] = useState<
+    'player1' | 'player2' | 'player3' | 'player4' | undefined
+  >(undefined)
+
+  // const currentPlayerA = currentMatch?.playerA
+  // const currentPlayerB = currentMatch?.playerB
+  useEffect(() => {
+    if (currentMatch) {
+      setCurrentPlayerA(currentMatch.playerA ?? undefined)
+      setCurrentPlayerB(currentMatch.playerB ?? undefined)
+    }
+  }, [currentMatch])
 
   return {
     // States
+    setCurrentPlayerA,
+    setCurrentPlayerB,
     finalStandings,
     setFinalStandings,
     tournamentWinner,
