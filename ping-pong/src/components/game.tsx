@@ -127,13 +127,21 @@ const TournamentWinnerModal = ({
 }
 
 type CasualGameMofalTypes = {
-  winner: 'player1' | 'player2' | null
+  winner: 'player1' | 'player2' | 'playerAI' | null
   onPlayAgain: () => void
+  opponentType: 'ai' | 'player'
 }
-const CasualGameModal = ({ winner, onPlayAgain }: CasualGameMofalTypes) => {
+const CasualGameModal = ({
+  winner,
+  onPlayAgain,
+  opponentType,
+}: CasualGameMofalTypes) => {
   if (!winner) return null
 
-  const winnerImage = getPlayerImage(winner)
+  const normalizedWinner =
+    opponentType === 'ai' && winner === 'player2' ? 'playerAI' : winner
+
+  const winnerImage = getPlayerImage(normalizedWinner)
   return (
     <div
       className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50"
@@ -141,7 +149,7 @@ const CasualGameModal = ({ winner, onPlayAgain }: CasualGameMofalTypes) => {
     >
       <div className="bg-gray-900 border-4 border-white rounded-lg p-8 w-96 text-center text-white space-y-6">
         <h2 className="w-full text-center text-2xl font-bold mb-4">
-          🏁 Round winner: {winner}
+          🏁 Round winner: {normalizedWinner}
         </h2>
         <div className="flex justify-center">
           <img
@@ -670,6 +678,7 @@ const PongGame = () => {
             setGameOver(true)
             setShowCasualGameModal(false)
           }}
+          opponentType={opponentType}
         />
       )}
       {showRoundResultModal &&
