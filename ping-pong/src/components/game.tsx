@@ -74,18 +74,19 @@ const TournamentWinnerModal = ({
   const renderPlayer = (
     label: string,
     playerId: string | null,
-    medal: string
+    medal: string,
+    fontSizeClass: string
   ) => {
     if (!playerId) return null
     return (
-      <li className="flex items-center gap-2 mb-2">
-        <span>
+      <li className="flex items-center gap-4 mb-6">
+        <span className={`${fontSizeClass} `}>
           {medal} {label}: {playerId}
         </span>
         <img
           src={getPlayerImage(playerId)}
           alt={playerId}
-          className="w-10 h-10 "
+          className="w-6 h-6 "
         />
       </li>
     )
@@ -96,22 +97,20 @@ const TournamentWinnerModal = ({
       className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50"
       style={{ backdropFilter: 'blur(4px)' }}
     >
-      <div className="bg-gray-900 border-4 border-white-400 rounded-lg p-6 w-80 text-center">
-        <h2>🏆 Турнир завершён</h2>
-        <p className="text-white mb-6 text-lg">
-          Tournametn winner: {tournamentWinner}
-        </p>
-        <img src={getPlayerImage(tournamentWinner)} alt="tournamentWinner" />
-        <h3>Итоговые места:</h3>
-        <ul>
-          {renderPlayer('1 место', finalStandings.first, '🥇')}
-          {renderPlayer('2 место', finalStandings.second, '🥈')}
-          {renderPlayer('3 место', finalStandings.third, '🥉')}
-          {renderPlayer('4 место', finalStandings.fourth, '🎖️')}
+      <div className="bg-gray-900 border-4 border-white-400 rounded-lg p-8 w-100 text-center text-white space-y-6">
+        <h2 className="w-full text-center text-3xl font-bold mb-4">
+          🏆 Tournament results
+        </h2>
+
+        <ul className="">
+          {renderPlayer('1st place', finalStandings.first, '🥇', 'text-2xl')}
+          {renderPlayer('2nd place', finalStandings.second, '🥈', 'text-xl')}
+          {renderPlayer('3rd place', finalStandings.third, '🥉', 'text-lg')}
+          {renderPlayer('4th place', finalStandings.fourth, '🎖️', 'text-base')}
         </ul>
         <button
           onClick={onPlayAgain}
-          className="bg-yellow-400 text-gray-900 font-semibold px-4 py-2 rounded hover:bg-yellow-300 transition"
+          className="bg-yellow-400 w-full text-gray-900 font-semibold px-4 py-2 rounded hover:bg-yellow-300 transition"
         >
           Play again
         </button>
@@ -465,12 +464,8 @@ const PongGame = () => {
 
         if (gameMode === 'tournament') {
           const winner = isPlayer1Goal ? currentPlayerA : currentPlayerB
-          // setRoundWinner(isPlayer1Goal ? 'player1' : 'player2')
           setRoundWinner(winner ?? null)
-
           setShowRoundResultModal(true)
-
-          console.log('winner', winner)
 
           if (
             winner === 'player1' ||
@@ -586,11 +581,7 @@ const PongGame = () => {
     <div className="flex flex-col items-center gap-6 p-6 min-h-screen">
       <GameSettingsModal
         buttonText={
-          gameOver
-            ? 'Play Again'
-            : gameMode === 'tournament'
-            ? 'Start tournament'
-            : 'Start the game'
+          gameMode === 'tournament' ? 'Start tournament' : 'Start the game'
         }
         show={showModal || gameOver}
         isRunning={isRunning}
@@ -606,18 +597,6 @@ const PongGame = () => {
         isTournament={gameMode}
         setIsTournament={setGameMode}
       />
-
-      {tournament.finished && tournament.matches[2].winner && (
-        <div className="text-white text-2xl font-bold mt-4">
-          Победитель турнира:{' '}
-          {{
-            player1: 'Player 1',
-            player2: 'Player 2',
-            player3: 'Player 3',
-            player4: 'Player 4',
-          }[tournament.matches[2].winner] || 'Неизвестно'}
-        </div>
-      )}
 
       {showPauseModal && <PauseModal onContinue={handleContinueFromPause} />}
       {showRoundResultModal &&
