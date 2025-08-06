@@ -44,9 +44,7 @@ export function useGameState(canvasWidth: number, canvasHeight: number) {
     finished: false,
   })
   const [showRoundResultModal, setShowRoundResultModal] = useState(false)
-  const [roundWinner, setRoundWinner] = useState<'player1' | 'player2' | null>(
-    null
-  )
+  const [roundWinner, setRoundWinner] = useState<PlayerID | null>(null)
   const currentMatchIndex = tournament.currentMatchIndex
   const currentMatch =
     currentMatchIndex >= 0 && currentMatchIndex < tournament.matches.length
@@ -113,24 +111,28 @@ export function useGameState(canvasWidth: number, canvasHeight: number) {
 
   const finishCurrentMatch = useCallback(
     (winner: 'player1' | 'player2' | 'player3' | 'player4') => {
+      let updatedTournament: TournamentState
+
       setTournament((prev) => {
         const matches = [...prev.matches]
         const index = prev.currentMatchIndex
 
         matches[index].winner = winner
 
-        return {
+        updatedTournament = {
           ...prev,
           matches,
           currentMatchIndex: index + 1,
           finished: index === 2,
         }
+
+        return updatedTournament
       })
 
       // Сбросить очки и состояния
       setScore1State(0)
       setScore2State(0)
-      setRoundWinner(null)
+      // setRoundWinner(null)
       setShowRoundResultModal(true)
     },
     []

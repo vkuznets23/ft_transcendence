@@ -4,7 +4,7 @@ import { useRef, useEffect, useCallback } from 'react'
 import GameSettingsModal from './TogglableModal'
 import ControlsPanel from './ControllsPannel'
 import PauseModal from './PauseModal'
-import { PlayersDisplay } from './PlayersDisplay'
+import { getPlayerImage, PlayersDisplay } from './PlayersDisplay'
 
 // Hooks
 import { useGameSounds } from '../hooks/useGameSounds'
@@ -27,19 +27,22 @@ import {
 import { resetBall } from '../utils/resetBall'
 
 type RoundResultModalProps = {
-  winner: 'player1' | 'player2' | null
+  winner: 'player1' | 'player2' | 'player3' | 'player4' | null
+  // winner: 'player1' | 'player2' | null
   onNextRound: () => void
 }
 const RoundResultModal = ({ winner, onNextRound }: RoundResultModalProps) => {
+  if (!winner) return null
+
+  const winnerImage = getPlayerImage(winner)
   return (
     <div
       className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50"
       style={{ backdropFilter: 'blur(4px)' }}
     >
       <div className="bg-gray-900 border-4 border-white-400 rounded-lg p-6 w-80 text-center">
-        <p className="text-white mb-6 text-lg">
-          Winner: {winner === 'player1' ? 'Player 1' : 'Player 2'}
-        </p>
+        <p className="text-white mb-6 text-lg">Winner: {winner}</p>
+        <img src={winnerImage} alt="winner" />
         <button
           onClick={onNextRound}
           className="bg-yellow-400 text-gray-900 font-semibold px-4 py-2 rounded hover:bg-yellow-300 transition"
@@ -51,11 +54,43 @@ const RoundResultModal = ({ winner, onNextRound }: RoundResultModalProps) => {
   )
 }
 
+const TournamentWinnerModal = ({
+  winner,
+  winnerId,
+  onPlayAgain,
+}: {
+  winner: string
+  onPlayAgain: () => void
+  winnerId: string
+}) => {
+  if (!winner) return null
+
+  const tournamentWinner = getPlayerImage(winnerId)
+  return (
+    <div
+      className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50"
+      style={{ backdropFilter: 'blur(4px)' }}
+    >
+      <div className="bg-gray-900 border-4 border-white-400 rounded-lg p-6 w-80 text-center">
+        <p className="text-white mb-6 text-lg">Winner: {winner}</p>
+        <img src={tournamentWinner} alt="tournamentWinner" />
+        <button
+          onClick={onPlayAgain}
+          className="bg-yellow-400 text-gray-900 font-semibold px-4 py-2 rounded hover:bg-yellow-300 transition"
+        >
+          Play again
+        </button>
+      </div>
+    </div>
+  )
+}
+
 const PongGame = () => {
   // Global Game State
   const {
     finishCurrentMatch,
     tournament,
+    setTournament,
     currentPlayerA,
     currentPlayerB,
     setTournamentWins,
@@ -270,6 +305,34 @@ const PongGame = () => {
     if (gameMode === 'tournament') {
       setTournamentWins({ player1: 0, player2: 0, player3: 0, player4: 0 })
       setOpponentType('player')
+
+      setTournament({
+        matches: [
+          {
+            playerA: 'player1',
+            playerB: 'player2',
+            scoreA: 0,
+            scoreB: 0,
+            winner: null,
+          },
+          {
+            playerA: 'player3',
+            playerB: 'player4',
+            scoreA: 0,
+            scoreB: 0,
+            winner: null,
+          },
+          {
+            playerA: null,
+            playerB: null,
+            scoreA: 0,
+            scoreB: 0,
+            winner: null,
+          },
+        ],
+        currentMatchIndex: 0,
+        finished: false,
+      })
     }
 
     score1.current = 0
@@ -364,8 +427,12 @@ const PongGame = () => {
 
         if (gameMode === 'tournament') {
           const winner = isPlayer1Goal ? currentPlayerA : currentPlayerB
-          setRoundWinner(isPlayer1Goal ? 'player1' : 'player2')
+          // setRoundWinner(isPlayer1Goal ? 'player1' : 'player2')
+          setRoundWinner(winner ?? null)
+
           setShowRoundResultModal(true)
+
+          console.log('winner', winner)
 
           if (
             winner === 'player1' ||
@@ -405,6 +472,10 @@ const PongGame = () => {
     playAddPoint,
     onResetBall,
   ])
+
+  useEffect(() => {
+    console.log('roundWinner changed:', roundWinner)
+  }, [roundWinner])
 
   // Drawing function
   const drawScene = useCallback(
@@ -471,6 +542,8 @@ const PongGame = () => {
     enabled: opponentType === 'ai',
   })
 
+  console.log('Winner ID:', tournament?.matches[2]?.winner)
+
   return (
     <div className="flex flex-col items-center gap-6 p-6 min-h-screen">
       <GameSettingsModal
@@ -509,23 +582,43 @@ const PongGame = () => {
       )}
 
       {showPauseModal && <PauseModal onContinue={handleContinueFromPause} />}
-      {showRoundResultModal && (
-        <RoundResultModal
-          winner={roundWinner}
-          onNextRound={() => {
-            setShowRoundResultModal(false)
-            onResetBall(true)
-            isRunningRef.current = true
-            setIsRunning(true)
-            setShowPauseModal(false)
+      {showRoundResultModal &&
+        (tournament.finished && tournament.matches[2].winner ? (
+          <TournamentWinnerModal
+            winner={
+              {
+                player1: 'Player 1',
+                player2: 'Player 2',
+                player3: 'Player 3',
+                player4: 'Player 4',
+              }[tournament.matches[2].winner] || 'Неизвестно'
+            }
+            onPlayAgain={() => {
+              setShowRoundResultModal(false)
+              setShowModal(true)
+              setGameOver(true)
+              setRoundWinner(null)
+            }}
+            winnerId={tournament?.matches[2]?.winner}
+          />
+        ) : (
+          <RoundResultModal
+            winner={roundWinner}
+            onNextRound={() => {
+              setShowRoundResultModal(false)
+              onResetBall(true)
+              isRunningRef.current = true
+              setIsRunning(true)
+              setShowPauseModal(false)
 
-            score1.current = 0
-            score2.current = 0
-            setScore1State(0)
-            setScore2State(0)
-          }}
-        />
-      )}
+              score1.current = 0
+              score2.current = 0
+              setScore1State(0)
+              setScore2State(0)
+              setRoundWinner(null)
+            }}
+          />
+        ))}
 
       <div className="flex items-center gap-10">
         <PlayersDisplay

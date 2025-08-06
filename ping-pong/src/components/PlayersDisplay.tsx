@@ -7,7 +7,7 @@ import player4 from '../assets/images/player4.png'
 import playerAI from '../assets/images/playerAI.png'
 import { IsTournament } from '../types/types'
 
-const getPlayerImage = (id: string | undefined) => {
+export const getPlayerImage = (id: string | undefined) => {
   switch (id) {
     case 'playerAI':
       return playerAI
