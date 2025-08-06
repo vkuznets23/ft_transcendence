@@ -25,6 +25,7 @@ import {
   MAX_SPEED,
 } from '../utils/constants'
 import { resetBall } from '../utils/resetBall'
+import type { PlayerID } from '../types/types'
 
 type RoundResultModalProps = {
   winner: 'player1' | 'player2' | 'player3' | 'player4' | null
@@ -55,25 +56,59 @@ const RoundResultModal = ({ winner, onNextRound }: RoundResultModalProps) => {
 }
 
 const TournamentWinnerModal = ({
-  winner,
-  winnerId,
+  tournamentWinner,
+  finalStandings,
   onPlayAgain,
 }: {
-  winner: string
+  tournamentWinner: PlayerID | null
+  finalStandings: {
+    first: string | null
+    second: string | null
+    third: string | null
+    fourth: string | null
+  }
   onPlayAgain: () => void
-  winnerId: string
 }) => {
-  if (!winner) return null
+  if (!tournamentWinner) return null
 
-  const tournamentWinner = getPlayerImage(winnerId)
+  const renderPlayer = (
+    label: string,
+    playerId: string | null,
+    medal: string
+  ) => {
+    if (!playerId) return null
+    return (
+      <li className="flex items-center gap-2 mb-2">
+        <span>
+          {medal} {label}: {playerId}
+        </span>
+        <img
+          src={getPlayerImage(playerId)}
+          alt={playerId}
+          className="w-10 h-10 "
+        />
+      </li>
+    )
+  }
+
   return (
     <div
       className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50"
       style={{ backdropFilter: 'blur(4px)' }}
     >
       <div className="bg-gray-900 border-4 border-white-400 rounded-lg p-6 w-80 text-center">
-        <p className="text-white mb-6 text-lg">Winner: {winner}</p>
-        <img src={tournamentWinner} alt="tournamentWinner" />
+        <h2>🏆 Турнир завершён</h2>
+        <p className="text-white mb-6 text-lg">
+          Tournametn winner: {tournamentWinner}
+        </p>
+        <img src={getPlayerImage(tournamentWinner)} alt="tournamentWinner" />
+        <h3>Итоговые места:</h3>
+        <ul>
+          {renderPlayer('1 место', finalStandings.first, '🥇')}
+          {renderPlayer('2 место', finalStandings.second, '🥈')}
+          {renderPlayer('3 место', finalStandings.third, '🥉')}
+          {renderPlayer('4 место', finalStandings.fourth, '🎖️')}
+        </ul>
         <button
           onClick={onPlayAgain}
           className="bg-yellow-400 text-gray-900 font-semibold px-4 py-2 rounded hover:bg-yellow-300 transition"
@@ -88,6 +123,8 @@ const TournamentWinnerModal = ({
 const PongGame = () => {
   // Global Game State
   const {
+    finalStandings,
+    tournamentWinner,
     finishCurrentMatch,
     tournament,
     setTournament,
@@ -322,6 +359,7 @@ const PongGame = () => {
             scoreB: 0,
             winner: null,
           },
+          { playerA: null, playerB: null, scoreA: 0, scoreB: 0, winner: null },
           {
             playerA: null,
             playerB: null,
@@ -585,21 +623,14 @@ const PongGame = () => {
       {showRoundResultModal &&
         (tournament.finished && tournament.matches[2].winner ? (
           <TournamentWinnerModal
-            winner={
-              {
-                player1: 'Player 1',
-                player2: 'Player 2',
-                player3: 'Player 3',
-                player4: 'Player 4',
-              }[tournament.matches[2].winner] || 'Неизвестно'
-            }
             onPlayAgain={() => {
               setShowRoundResultModal(false)
               setShowModal(true)
               setGameOver(true)
               setRoundWinner(null)
             }}
-            winnerId={tournament?.matches[2]?.winner}
+            tournamentWinner={tournamentWinner}
+            finalStandings={finalStandings}
           />
         ) : (
           <RoundResultModal

@@ -21,6 +21,17 @@ export function useGameState(canvasWidth: number, canvasHeight: number) {
     player3: 0,
     player4: 0,
   })
+  const [tournamentWinner, setTournamentWinner] = useState<PlayerID | null>(
+    null
+  )
+  const [finalStandings, setFinalStandings] = useState<
+    Record<'first' | 'second' | 'third' | 'fourth', PlayerID | null>
+  >({
+    first: null,
+    second: null,
+    third: null,
+    fourth: null,
+  })
 
   const [tournament, setTournament] = useState<TournamentState>({
     matches: [
@@ -39,6 +50,7 @@ export function useGameState(canvasWidth: number, canvasHeight: number) {
         winner: null,
       },
       { playerA: null, playerB: null, scoreA: 0, scoreB: 0, winner: null },
+      { playerA: null, playerB: null, scoreA: 0, scoreB: 0, winner: null },
     ],
     currentMatchIndex: 0,
     finished: false,
@@ -50,10 +62,6 @@ export function useGameState(canvasWidth: number, canvasHeight: number) {
     currentMatchIndex >= 0 && currentMatchIndex < tournament.matches.length
       ? tournament.matches[currentMatchIndex]
       : null
-
-  // const [currentRound, setCurrentRound] = useState(1)
-  // const [totalRounds, setTotalRounds] = useState(3)
-
   const [isRunning, setIsRunning] = useState(false)
   const [showModal, setShowModal] = useState(true)
   const [gameOver, setGameOver] = useState(false)
@@ -85,17 +93,35 @@ export function useGameState(canvasWidth: number, canvasHeight: number) {
   useEffect(() => {
     setTournament((prev) => {
       const updatedMatches = [...prev.matches]
-      const [semifinal1, semifinal2, finalMatch] = updatedMatches
+      const semifinal1 = updatedMatches[0]
+      const semifinal2 = updatedMatches[1]
+      const thirdPlaceMatch = updatedMatches[2]
+      const finalMatch = updatedMatches[3]
 
-      if (
-        semifinal1.winner &&
-        semifinal2.winner &&
-        (!finalMatch.playerA || !finalMatch.playerB)
-      ) {
+      if (semifinal1.winner && semifinal2.winner) {
+        // 3d place
         updatedMatches[2] = {
+          ...thirdPlaceMatch,
+          playerA:
+            semifinal1.playerA === semifinal1.winner
+              ? semifinal1.playerB
+              : semifinal1.playerA,
+          playerB:
+            semifinal2.playerA === semifinal2.winner
+              ? semifinal2.playerB
+              : semifinal2.playerA,
+          winner: null,
+          scoreA: 0,
+          scoreB: 0,
+        }
+        // final
+        updatedMatches[3] = {
           ...finalMatch,
           playerA: semifinal1.winner,
           playerB: semifinal2.winner,
+          winner: null,
+          scoreA: 0,
+          scoreB: 0,
         }
 
         return {
@@ -119,11 +145,18 @@ export function useGameState(canvasWidth: number, canvasHeight: number) {
 
         matches[index].winner = winner
 
+        const finished = index === 3
+
         updatedTournament = {
           ...prev,
           matches,
           currentMatchIndex: index + 1,
-          finished: index === 2,
+          finished,
+        }
+
+        if (finished && matches[3].winner) {
+          console.log('🏆 Final winner set:', matches[3].winner)
+          setTournamentWinner(matches[3].winner)
         }
 
         return updatedTournament
@@ -132,17 +165,40 @@ export function useGameState(canvasWidth: number, canvasHeight: number) {
       // Сбросить очки и состояния
       setScore1State(0)
       setScore2State(0)
-      // setRoundWinner(null)
       setShowRoundResultModal(true)
     },
     []
   )
+
+  useEffect(() => {
+    if (tournament.finished) {
+      const finalMatch = tournament.matches[3]
+      const thirdPlaceMatch = tournament.matches[2]
+
+      if (finalMatch.winner && thirdPlaceMatch.winner) {
+        setFinalStandings({
+          first: finalMatch.winner,
+          second:
+            finalMatch.playerA === finalMatch.winner
+              ? finalMatch.playerB
+              : finalMatch.playerA,
+          third: thirdPlaceMatch.winner,
+          fourth:
+            thirdPlaceMatch.playerA === thirdPlaceMatch.winner
+              ? thirdPlaceMatch.playerB
+              : thirdPlaceMatch.playerA,
+        })
+      }
+    }
+  }, [tournament.finished, tournament.matches])
 
   const currentPlayerA = currentMatch?.playerA
   const currentPlayerB = currentMatch?.playerB
 
   return {
     // States
+    finalStandings,
+    tournamentWinner,
     currentPlayerA,
     currentPlayerB,
     tournamentWins,
