@@ -1,4 +1,4 @@
-import { useRef, useEffect, useCallback } from 'react'
+import { useRef, useEffect, useCallback, useState } from 'react'
 
 // UI Components
 import GameSettingsModal from './TogglableModal'
@@ -29,7 +29,6 @@ import type { PlayerID } from '../types/types'
 
 type RoundResultModalProps = {
   winner: 'player1' | 'player2' | 'player3' | 'player4' | null
-  // winner: 'player1' | 'player2' | null
   onNextRound: () => void
 }
 const RoundResultModal = ({ winner, onNextRound }: RoundResultModalProps) => {
@@ -127,11 +126,48 @@ const TournamentWinnerModal = ({
   )
 }
 
+type CasualGameMofalTypes = {
+  winner: 'player1' | 'player2' | null
+  onPlayAgain: () => void
+}
+const CasualGameModal = ({ winner, onPlayAgain }: CasualGameMofalTypes) => {
+  if (!winner) return null
+
+  const winnerImage = getPlayerImage(winner)
+  return (
+    <div
+      className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50"
+      style={{ backdropFilter: 'blur(4px)' }}
+    >
+      <div className="bg-gray-900 border-4 border-white rounded-lg p-8 w-96 text-center text-white space-y-6">
+        <h2 className="w-full text-center text-2xl font-bold mb-4">
+          🏁 Round winner: {winner}
+        </h2>
+        <div className="flex justify-center">
+          <img
+            src={winnerImage}
+            alt="winner"
+            className="w-24 h-24 object-cover"
+          />
+        </div>
+        <button
+          onClick={onPlayAgain}
+          className="w-full bg-yellow-400 text-gray-900 font-semibold px-4 py-2 rounded hover:bg-yellow-300 transition"
+        >
+          Play Again
+        </button>
+      </div>
+    </div>
+  )
+}
+
 const PongGame = () => {
   // Global Game State
   const {
     finalStandings,
+    setFinalStandings,
     tournamentWinner,
+    setTournamentWinner,
     finishCurrentMatch,
     tournament,
     setTournament,
@@ -172,6 +208,11 @@ const PongGame = () => {
     paddleHeightRef,
     updatePaddleHeight,
   } = useGameState(CANVAS_WIDTH, CANVAS_HEIGHT)
+
+  const [showCasualGameModal, setShowCasualGameModal] = useState(false)
+  const [casualWinner, setCasualWinner] = useState<
+    'player1' | 'player2' | null
+  >(null)
 
   const { playAddPoint, playGameOver, playGameStart, playPong } =
     useGameSounds(isSoundOn)
@@ -346,6 +387,17 @@ const PongGame = () => {
   const startGameFromModal = () => {
     playGameStart()
 
+    setTournamentWinner(null)
+    setFinalStandings({
+      first: null,
+      second: null,
+      third: null,
+      fourth: null,
+    })
+    setRoundWinner(null)
+    setShowPauseModal(false)
+    setShowRoundResultModal(false)
+
     if (gameMode === 'tournament') {
       setTournamentWins({ player1: 0, player2: 0, player3: 0, player4: 0 })
       setOpponentType('player')
@@ -464,6 +516,8 @@ const PongGame = () => {
       const setScore = isPlayer1Goal ? setScore1State : setScore2State
       const score = ++scorer.current
 
+      setCasualWinner(isPlayer1Goal ? 'player1' : 'player2')
+
       setScore(score)
       if (score >= MAX_SCORE) {
         isRunningRef.current = false
@@ -483,6 +537,8 @@ const PongGame = () => {
           ) {
             finishCurrentMatch(winner)
           }
+        } else {
+          setShowCasualGameModal(true)
         }
       } else {
         playAddPoint()
@@ -513,10 +569,6 @@ const PongGame = () => {
     playAddPoint,
     onResetBall,
   ])
-
-  useEffect(() => {
-    console.log('roundWinner changed:', roundWinner)
-  }, [roundWinner])
 
   // Drawing function
   const drawScene = useCallback(
@@ -583,8 +635,6 @@ const PongGame = () => {
     enabled: opponentType === 'ai',
   })
 
-  console.log('Winner ID:', tournament?.matches[2]?.winner)
-
   return (
     <div className="flex flex-col items-center gap-6 p-6 min-h-screen">
       <GameSettingsModal
@@ -607,6 +657,16 @@ const PongGame = () => {
       />
 
       {showPauseModal && <PauseModal onContinue={handleContinueFromPause} />}
+      {showCasualGameModal && (
+        <CasualGameModal
+          winner={casualWinner}
+          onPlayAgain={() => {
+            setShowModal(true)
+            setGameOver(true)
+            setShowCasualGameModal(false)
+          }}
+        />
+      )}
       {showRoundResultModal &&
         (tournament.finished && tournament.matches[2].winner ? (
           <TournamentWinnerModal

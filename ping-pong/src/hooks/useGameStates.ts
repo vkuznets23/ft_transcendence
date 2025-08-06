@@ -198,7 +198,9 @@ export function useGameState(canvasWidth: number, canvasHeight: number) {
   return {
     // States
     finalStandings,
+    setFinalStandings,
     tournamentWinner,
+    setTournamentWinner,
     currentPlayerA,
     currentPlayerB,
     tournamentWins,
