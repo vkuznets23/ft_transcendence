@@ -27,11 +27,31 @@ import {
 import { resetBall } from '../utils/resetBall'
 import type { PlayerID } from '../types/types'
 
+function getRoundLabel(index: number): string {
+  switch (index) {
+    case 0:
+      return 'Semifinal'
+    case 1:
+      return 'Semifinal'
+    case 2:
+      return 'Match for 3rd Place'
+    case 3:
+      return 'Final Match'
+    default:
+      return 'Warm-up Round'
+  }
+}
+
 type RoundResultModalProps = {
   winner: 'player1' | 'player2' | 'player3' | 'player4' | null
   onNextRound: () => void
+  roundLabel: string
 }
-const RoundResultModal = ({ winner, onNextRound }: RoundResultModalProps) => {
+const RoundResultModal = ({
+  winner,
+  onNextRound,
+  roundLabel,
+}: RoundResultModalProps) => {
   if (!winner) return null
 
   const winnerImage = getPlayerImage(winner)
@@ -55,7 +75,7 @@ const RoundResultModal = ({ winner, onNextRound }: RoundResultModalProps) => {
           onClick={onNextRound}
           className="w-full bg-yellow-400 text-gray-900 font-semibold px-4 py-2 rounded hover:bg-yellow-300 transition"
         >
-          Next round
+          Next round: {roundLabel}
         </button>
       </div>
     </div>
@@ -709,6 +729,7 @@ const PongGame = () => {
               setScore2State(0)
               setRoundWinner(null)
             }}
+            roundLabel={getRoundLabel(tournament.currentMatchIndex)}
           />
         ))}
 
