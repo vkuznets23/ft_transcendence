@@ -34,20 +34,18 @@ export function drawScene({
   difficulty,
   obstacle,
 }: DrawSceneParams) {
-  // Сначала очищаем экран и заливаем фон
+  // Clean the screen and make bg
   ctx.clearRect(0, 0, canvasWidth, canvasHeight)
   ctx.fillStyle = '#1A1A1A'
   ctx.fillRect(0, 0, canvasWidth, canvasHeight)
 
-  // Ракетки
+  // paddles
   ctx.fillStyle = 'white'
 
-  // Игрок 1 (слева)
-  // ctx.fillRect(0, player1Y, paddleWidth, paddleHeight)
+  // palyer 1 (left)
   ctx.fillRect(paddleOffset, player1Y, paddleWidth, paddleHeight)
 
-  // Игрок 2 (справа)
-  // ctx.fillRect(canvasWidth - paddleWidth, player2Y, paddleWidth, paddleHeight)
+  // player 2 (right)
   ctx.fillRect(
     canvasWidth - paddleWidth - paddleOffset,
     player2Y,
@@ -55,13 +53,13 @@ export function drawScene({
     paddleHeight
   )
 
-  // Препятствие
+  // obstacle
   if ((difficulty === 'hard' || difficulty === 'medium') && obstacle) {
     ctx.fillStyle = 'red'
     ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height)
   }
 
-  // Мяч
+  // ball
   ctx.fillStyle = 'white'
   ctx.beginPath()
   ctx.arc(ballX, ballY, ballSize, 0, Math.PI * 2)
