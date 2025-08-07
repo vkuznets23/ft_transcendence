@@ -4,7 +4,10 @@ import { useRef, useEffect, useCallback, useState } from 'react'
 import GameSettingsModal from './TogglableModal'
 import ControlsPanel from './ControllsPannel'
 import PauseModal from './PauseModal'
-import { getPlayerImage, PlayersDisplay } from './PlayersDisplay'
+import { PlayersDisplay } from './PlayersDisplay'
+import { RoundResultModal } from './ResetResultsModal'
+import { TournamentWinnerModal } from './TournamentsWinnerModel'
+import { CasualGameModal } from './CasualGameModal'
 
 // Hooks
 import { useGameSounds } from '../hooks/useGameSounds'
@@ -25,169 +28,7 @@ import {
   MAX_SPEED,
 } from '../utils/constants'
 import { resetBall } from '../utils/resetBall'
-import type { PlayerID } from '../types/types'
-
-function getRoundLabel(index: number): string {
-  switch (index) {
-    case 0:
-      return 'Semifinal'
-    case 1:
-      return 'Semifinal'
-    case 2:
-      return 'Match for 3rd Place'
-    case 3:
-      return 'Final Match'
-    default:
-      return 'Warm-up Round'
-  }
-}
-
-type RoundResultModalProps = {
-  winner: 'player1' | 'player2' | 'player3' | 'player4' | null
-  onNextRound: () => void
-  roundLabel: string
-}
-const RoundResultModal = ({
-  winner,
-  onNextRound,
-  roundLabel,
-}: RoundResultModalProps) => {
-  if (!winner) return null
-
-  const winnerImage = getPlayerImage(winner)
-  return (
-    <div
-      className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50"
-      style={{ backdropFilter: 'blur(4px)' }}
-    >
-      <div className="bg-gray-900 border-4 border-white rounded-lg p-8 w-96 text-center text-white space-y-6">
-        <h2 className="w-full text-center text-2xl font-bold mb-4">
-          🏁 Round winner: {winner}
-        </h2>
-        <div className="flex justify-center">
-          <img
-            src={winnerImage}
-            alt="winner"
-            className="w-24 h-24 object-cover"
-          />
-        </div>
-        <button
-          onClick={onNextRound}
-          className="w-full bg-yellow-400 text-gray-900 font-semibold px-4 py-2 rounded hover:bg-yellow-300 transition"
-        >
-          Next round: {roundLabel}
-        </button>
-      </div>
-    </div>
-  )
-}
-
-const TournamentWinnerModal = ({
-  tournamentWinner,
-  finalStandings,
-  onPlayAgain,
-}: {
-  tournamentWinner: PlayerID | null
-  finalStandings: {
-    first: string | null
-    second: string | null
-    third: string | null
-    fourth: string | null
-  }
-  onPlayAgain: () => void
-}) => {
-  if (!tournamentWinner) return null
-
-  const renderPlayer = (
-    label: string,
-    playerId: string | null,
-    medal: string,
-    fontSizeClass: string
-  ) => {
-    if (!playerId) return null
-    return (
-      <li className="flex items-center gap-4 mb-6">
-        <span className={`${fontSizeClass} `}>
-          {medal} {label}: {playerId}
-        </span>
-        <img
-          src={getPlayerImage(playerId)}
-          alt={playerId}
-          className="w-6 h-6 "
-        />
-      </li>
-    )
-  }
-
-  return (
-    <div
-      className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50"
-      style={{ backdropFilter: 'blur(4px)' }}
-    >
-      <div className="bg-gray-900 border-4 border-white-400 rounded-lg p-8 w-100 text-center text-white space-y-6">
-        <h2 className="w-full text-center text-3xl font-bold mb-4">
-          🏆 Tournament results
-        </h2>
-
-        <ul className="">
-          {renderPlayer('1st place', finalStandings.first, '🥇', 'text-2xl')}
-          {renderPlayer('2nd place', finalStandings.second, '🥈', 'text-xl')}
-          {renderPlayer('3rd place', finalStandings.third, '🥉', 'text-lg')}
-          {renderPlayer('4th place', finalStandings.fourth, '🎖️', 'text-base')}
-        </ul>
-        <button
-          onClick={onPlayAgain}
-          className="bg-yellow-400 w-full text-gray-900 font-semibold px-4 py-2 rounded hover:bg-yellow-300 transition"
-        >
-          Play again
-        </button>
-      </div>
-    </div>
-  )
-}
-
-type CasualGameMofalTypes = {
-  winner: 'player1' | 'player2' | 'playerAI' | null
-  onPlayAgain: () => void
-  opponentType: 'ai' | 'player'
-}
-const CasualGameModal = ({
-  winner,
-  onPlayAgain,
-  opponentType,
-}: CasualGameMofalTypes) => {
-  if (!winner) return null
-
-  const normalizedWinner =
-    opponentType === 'ai' && winner === 'player2' ? 'playerAI' : winner
-
-  const winnerImage = getPlayerImage(normalizedWinner)
-  return (
-    <div
-      className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50"
-      style={{ backdropFilter: 'blur(4px)' }}
-    >
-      <div className="bg-gray-900 border-4 border-white rounded-lg p-8 w-96 text-center text-white space-y-6">
-        <h2 className="w-full text-center text-2xl font-bold mb-4">
-          🏁 Round winner: {normalizedWinner}
-        </h2>
-        <div className="flex justify-center">
-          <img
-            src={winnerImage}
-            alt="winner"
-            className="w-24 h-24 object-cover"
-          />
-        </div>
-        <button
-          onClick={onPlayAgain}
-          className="w-full bg-yellow-400 text-gray-900 font-semibold px-4 py-2 rounded hover:bg-yellow-300 transition"
-        >
-          Play Again
-        </button>
-      </div>
-    </div>
-  )
-}
+import { getRoundLabel } from '../utils/getRoundLabel'
 
 const PongGame = () => {
   // Global Game State
@@ -470,12 +311,19 @@ const PongGame = () => {
     setGameOver(false)
     setShowModal(false)
     onResetBall(true)
+    resetPaddlesPosition()
     setScore1State(0)
     setScore2State(0)
     setTimeout(() => {
       toggleRunning()
     }, 100)
   }
+
+  const resetPaddlesPosition = useCallback(() => {
+    const centerY = CANVAS_HEIGHT / 2 - paddleHeightRef.current / 2
+    player1Y.current = centerY
+    player2Y.current = centerY
+  }, [paddleHeightRef])
 
   // Update positions of all game elements
   const updatePositions = useCallback(() => {
@@ -576,6 +424,7 @@ const PongGame = () => {
       } else {
         playAddPoint()
         onResetBall()
+        resetPaddlesPosition()
       }
     }
   }, [
@@ -601,6 +450,7 @@ const PongGame = () => {
     finishCurrentMatch,
     playAddPoint,
     onResetBall,
+    resetPaddlesPosition,
   ])
 
   // Drawing function
