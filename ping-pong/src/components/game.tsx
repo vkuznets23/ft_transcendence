@@ -15,6 +15,7 @@ import { useGameLoop } from '../hooks/useGameLoop'
 import { usePlayerControls } from '../hooks/usePlayerControls'
 import { useAIPlayer } from '../hooks/useAIPlayer'
 import { useGameState } from '../hooks/useGameStates'
+import { useGameInitializer } from '../hooks/useGameInitializer'
 
 // Utils
 import { generateRandomObstacle } from '../utils/generateObstacle'
@@ -255,75 +256,36 @@ const PongGame = () => {
     toggleRunning()
   }
 
-  const startGameFromModal = () => {
-    playGameStart()
-
-    setTournamentWinner(null)
-    setFinalStandings({
-      first: null,
-      second: null,
-      third: null,
-      fourth: null,
-    })
-    setRoundWinner(null)
-    setShowPauseModal(false)
-    setShowRoundResultModal(false)
-
-    if (gameMode === 'tournament') {
-      setTournamentWins({ player1: 0, player2: 0, player3: 0, player4: 0 })
-      setOpponentType('player')
-
-      setTournament({
-        matches: [
-          {
-            playerA: 'player1',
-            playerB: 'player2',
-            scoreA: 0,
-            scoreB: 0,
-            winner: null,
-          },
-          {
-            playerA: 'player3',
-            playerB: 'player4',
-            scoreA: 0,
-            scoreB: 0,
-            winner: null,
-          },
-          { playerA: null, playerB: null, scoreA: 0, scoreB: 0, winner: null },
-          {
-            playerA: null,
-            playerB: null,
-            scoreA: 0,
-            scoreB: 0,
-            winner: null,
-          },
-        ],
-        currentMatchIndex: 0,
-        finished: false,
-      })
-    }
-
-    setCurrentPlayerA('player1')
-    setCurrentPlayerB('player2')
-
-    score1.current = 0
-    score2.current = 0
-    setGameOver(false)
-    setShowModal(false)
-    onResetBall(true)
-    resetPaddlesPosition()
-    setScore1State(0)
-    setScore2State(0)
-    setTimeout(() => {
-      toggleRunning()
-    }, 100)
-  }
-
   const resetPaddlesPosition = useCallback(() => {
     const centerY = CANVAS_HEIGHT / 2 - paddleHeightRef.current / 2
     player1Y.current = centerY
     player2Y.current = centerY
   }, [paddleHeightRef])
+
+  const initializeGame = useGameInitializer({
+    playGameStart,
+    resetPaddlesPosition,
+    setTournamentWinner,
+    setFinalStandings,
+    setRoundWinner,
+    setShowPauseModal,
+    setShowRoundResultModal,
+    setTournamentWins,
+    setOpponentType,
+    setTournament,
+    setCurrentPlayerA,
+    setCurrentPlayerB,
+    setGameOver,
+    setShowModal,
+    onResetBall,
+    setScore1State,
+    setScore2State,
+    toggleRunning,
+    score1Ref: score1,
+    score2Ref: score2,
+  })
+
+  const startGameFromModal = () => initializeGame(gameMode)
 
   // Update positions of all game elements
   const updatePositions = useCallback(() => {
@@ -518,6 +480,21 @@ const PongGame = () => {
     enabled: opponentType === 'ai',
   })
 
+  const onNextRound = () => {
+    setShowRoundResultModal(false)
+    onResetBall(true)
+    isRunningRef.current = true
+    setIsRunning(true)
+    setShowPauseModal(false)
+
+    resetPaddlesPosition()
+    score1.current = 0
+    score2.current = 0
+    setScore1State(0)
+    setScore2State(0)
+    setRoundWinner(null)
+  }
+
   return (
     <div className="flex flex-col items-center gap-6 p-6 min-h-screen">
       <GameSettingsModal
@@ -566,19 +543,7 @@ const PongGame = () => {
         ) : (
           <RoundResultModal
             winner={roundWinner}
-            onNextRound={() => {
-              setShowRoundResultModal(false)
-              onResetBall(true)
-              isRunningRef.current = true
-              setIsRunning(true)
-              setShowPauseModal(false)
-
-              score1.current = 0
-              score2.current = 0
-              setScore1State(0)
-              setScore2State(0)
-              setRoundWinner(null)
-            }}
+            onNextRound={onNextRound}
             roundLabel={getRoundLabel(tournament.currentMatchIndex)}
           />
         ))}
