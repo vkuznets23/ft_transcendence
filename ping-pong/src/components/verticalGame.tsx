@@ -5,6 +5,9 @@ import GameSettingsModal from './TogglableModal'
 import ControlsPanel from './ControllsPannel'
 import PauseModal from './PauseModal'
 import { PlayersDisplay } from './PlayersDisplay'
+import { RoundResultModal } from './ResetResultsModal'
+import { TournamentWinnerModal } from './TournamentsWinnerModel'
+import { CasualGameModal } from './CasualGameModal'
 
 // Hooks
 import { useGameLoop } from '../hooks/useGameLoop'
@@ -12,6 +15,7 @@ import { useGameSounds } from '../hooks/useGameSounds'
 import { useGameState } from '../hooks/useGameStates'
 import { useAIPlayerVertical } from '../hooks/useAIPlayer'
 import { usePlayerTouchControls } from '../hooks/usePlayerTouchControls'
+import { useGameInitializer } from '../hooks/useGameInitializer'
 
 // Utils
 import {
@@ -24,6 +28,7 @@ import {
 } from '../utils/constants'
 import { generateRandomObstacle } from '../utils/generateObstacle'
 import { drawVerticalScene } from '../utils/drawVerticalScene'
+import { getRoundLabel } from '../utils/getRoundLabel'
 
 const VERTICAL_CANVAS_WIDTH = CANVAS_HEIGHT
 const VERTICAL_CANVAS_HEIGHT = CANVAS_WIDTH
@@ -38,12 +43,22 @@ const VerticalPongGame: React.FC = () => {
 
   // Global Game State
   const {
-    // tournamentWins,
-    // setTournamentWins,
-    // currentRound,
-    // setCurrentRound,
-    // totalRounds,
-    // setTotalRounds,
+    setCurrentPlayerA,
+    setCurrentPlayerB,
+    finalStandings,
+    setFinalStandings,
+    tournamentWinner,
+    setTournamentWinner,
+    finishCurrentMatch,
+    tournament,
+    setTournament,
+    currentPlayerA,
+    currentPlayerB,
+    setTournamentWins,
+    showRoundResultModal,
+    setShowRoundResultModal,
+    roundWinner,
+    setRoundWinner,
     gameMode,
     setGameMode,
     isRunning,
@@ -74,6 +89,11 @@ const VerticalPongGame: React.FC = () => {
     paddleHeightRef,
     updatePaddleHeight,
   } = useGameState(canvasSize.width, canvasSize.height)
+
+  const [showCasualGameModal, setShowCasualGameModal] = useState(false)
+  const [casualWinner, setCasualWinner] = useState<
+    'player1' | 'player2' | null
+  >(null)
 
   const { playAddPoint, playGameOver, playGameStart, playPong } =
     useGameSounds(isSoundOn)
@@ -158,7 +178,7 @@ const VerticalPongGame: React.FC = () => {
   ])
 
   // Reset the ball to center
-  const resetBall = useCallback(() => {
+  const onResetBall = useCallback(() => {
     ballX.current = canvasSize.width / 2
     ballY.current = canvasSize.height / 2
     ballSpeedX.current = 3 * (Math.random() > 0.5 ? 1 : -1)
@@ -224,6 +244,12 @@ const VerticalPongGame: React.FC = () => {
       }
     }
   }, [obstacle, playPong])
+
+  const resetPaddlesPosition = useCallback(() => {
+    const centerX = canvasSize.width / 2 - paddleHeightRef.current / 2
+    player1X.current = centerX
+    player2X.current = centerX
+  }, [canvasSize.width, paddleHeightRef])
 
   // Update positions of all game elements
   const updatePositions = useCallback(() => {
@@ -298,31 +324,42 @@ const VerticalPongGame: React.FC = () => {
     }
 
     // Scoring
-    if (ballY.current < 0) {
-      score2.current += 1
-      setScore2State(score2.current)
+    if (ballY.current < 0 || ballY.current > canvasSize.height) {
+      const isPlayer1Goal = ballY.current > canvasSize.height
+      const scorerRef = isPlayer1Goal ? score1 : score2
+      const setScore = isPlayer1Goal ? setScore1State : setScore2State
 
-      if (score2.current >= MAX_SCORE) {
+      scorerRef.current += 1
+      const score = scorerRef.current
+
+      setCasualWinner(isPlayer1Goal ? 'player1' : 'player2')
+      setScore(score)
+
+      if (score >= MAX_SCORE) {
         isRunningRef.current = false
         setIsRunning(false)
         playGameOver()
-        setGameOver(true)
-      } else {
-        playAddPoint()
-        resetBall()
-      }
-    } else if (ballY.current > canvasSize.height) {
-      score1.current += 1
-      setScore1State(score1.current)
 
-      if (score1.current >= MAX_SCORE) {
-        isRunningRef.current = false
-        setIsRunning(false)
-        playGameOver()
-        setGameOver(true)
+        if (gameMode === 'tournament') {
+          const winner = isPlayer1Goal ? currentPlayerA : currentPlayerB
+          setRoundWinner(winner ?? null)
+          setShowRoundResultModal(true)
+
+          if (
+            winner === 'player1' ||
+            winner === 'player2' ||
+            winner === 'player3' ||
+            winner === 'player4'
+          ) {
+            finishCurrentMatch(winner)
+          }
+        } else {
+          setShowCasualGameModal(true)
+        }
       } else {
         playAddPoint()
-        resetBall()
+        onResetBall()
+        resetPaddlesPosition()
       }
     }
   }, [
@@ -336,13 +373,19 @@ const VerticalPongGame: React.FC = () => {
     player1TouchX,
     playPong,
     checkBallObstacleCollision,
+    setScore1State,
     setScore2State,
     setIsRunning,
     playGameOver,
-    setGameOver,
+    gameMode,
+    currentPlayerA,
+    currentPlayerB,
+    setRoundWinner,
+    setShowRoundResultModal,
+    finishCurrentMatch,
     playAddPoint,
-    resetBall,
-    setScore1State,
+    onResetBall,
+    resetPaddlesPosition,
   ])
 
   // Drawing function
@@ -393,19 +436,46 @@ const VerticalPongGame: React.FC = () => {
     toggleRunning()
   }
 
+  const initializeGame = useGameInitializer({
+    playGameStart,
+    resetPaddlesPosition,
+    setTournamentWinner,
+    setFinalStandings,
+    setRoundWinner,
+    setShowPauseModal,
+    setShowRoundResultModal,
+    setTournamentWins,
+    setOpponentType,
+    setTournament,
+    setCurrentPlayerA,
+    setCurrentPlayerB,
+    setGameOver,
+    setShowModal,
+    onResetBall,
+    setScore1State,
+    setScore2State,
+    toggleRunning,
+    score1Ref: score1,
+    score2Ref: score2,
+  })
+
   const startGameFromModal = () => {
-    playGameStart()
-    score1.current = 0
-    score2.current = 0
-    setGameOver(false)
-    setShowModal(false)
-    setScore1State(0)
-    setScore2State(0)
-    resetBall()
-    setTimeout(() => {
-      toggleRunning()
-    }, 100)
+    initializeGame(gameMode)
   }
+
+  // const startGameFromModal = () => {
+  //   playGameStart()
+  //   score1.current = 0
+  //   score2.current = 0
+  //   setGameOver(false)
+  //   setShowModal(false)
+  //   setScore1State(0)
+  //   setScore2State(0)
+  //   resetBall()
+  //   setTimeout(() => {
+  //     toggleRunning()
+  //   }, 100)
+  // }
 
   // AI logic
   useAIPlayerVertical({
@@ -426,6 +496,21 @@ const VerticalPongGame: React.FC = () => {
     enabled: opponentType === 'ai',
   })
 
+  const onNextRound = () => {
+    setShowRoundResultModal(false)
+    // onResetBall(true)
+    isRunningRef.current = true
+    setIsRunning(true)
+    setShowPauseModal(false)
+
+    resetPaddlesPosition()
+    score1.current = 0
+    score2.current = 0
+    setScore1State(0)
+    setScore2State(0)
+    setRoundWinner(null)
+  }
+
   const isMobile = window.innerWidth < 950
 
   return (
@@ -437,6 +522,8 @@ const VerticalPongGame: React.FC = () => {
           opponentType={opponentType}
           showPlayer="right"
           isMobile={isMobile}
+          playerLeftId={currentPlayerB ?? undefined}
+          playerRightId={currentPlayerA ?? undefined}
         >
           <ControlsPanel
             isRunning={isRunning}
@@ -483,6 +570,8 @@ const VerticalPongGame: React.FC = () => {
           opponentType={opponentType}
           showPlayer="left"
           isMobile={isMobile}
+          playerLeftId={currentPlayerB ?? undefined}
+          playerRightId={currentPlayerA ?? undefined}
         >
           <ControlsPanel
             isRunning={isRunning}
@@ -502,6 +591,36 @@ const VerticalPongGame: React.FC = () => {
       </div>
 
       {showPauseModal && <PauseModal onContinue={handleContinueFromPause} />}
+      {showCasualGameModal && (
+        <CasualGameModal
+          winner={casualWinner}
+          onPlayAgain={() => {
+            setShowModal(true)
+            setGameOver(true)
+            setShowCasualGameModal(false)
+          }}
+          opponentType={opponentType}
+        />
+      )}
+      {showRoundResultModal &&
+        (tournament.finished && tournament.matches[2].winner ? (
+          <TournamentWinnerModal
+            onPlayAgain={() => {
+              setShowRoundResultModal(false)
+              setShowModal(true)
+              setGameOver(true)
+              setRoundWinner(null)
+            }}
+            tournamentWinner={tournamentWinner}
+            finalStandings={finalStandings}
+          />
+        ) : (
+          <RoundResultModal
+            winner={roundWinner}
+            onNextRound={onNextRound}
+            roundLabel={getRoundLabel(tournament.currentMatchIndex)}
+          />
+        ))}
     </div>
   )
 }

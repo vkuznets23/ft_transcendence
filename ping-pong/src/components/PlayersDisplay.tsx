@@ -49,6 +49,7 @@ export const PlayersDisplay: React.FC<PlayersDisplayProps> = ({
 }) => {
   if (isMobile) {
     const isLeft = showPlayer === 'left'
+    const leftPlayerImg = getPlayerImage(playerLeftId)
     const rightPlayerImg =
       gameMode === 'tournament'
         ? getPlayerImage(playerRightId)
@@ -61,7 +62,7 @@ export const PlayersDisplay: React.FC<PlayersDisplayProps> = ({
         {isLeft ? (
           <>
             <div className="flex items-center gap-2">
-              <img src={player1} alt="player1" className="h-[40px]" />
+              <img src={leftPlayerImg} alt="player1" className="h-[40px]" />
               <HeartDisplay score={scoreLeft} player="left" />
             </div>
             <div>{children}</div>
