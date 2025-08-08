@@ -25,7 +25,7 @@ const ControlsPanel: React.FC<ControlsPanelProps> = ({
   showLabels = true,
 }) => {
   const [open, setOpen] = useState(false)
-  const [isTooSmall, setIsTooSmall] = useState(false)
+  const [isTooSmall, setIsTooSmall] = useState(() => window.innerWidth < 450)
 
   useEffect(() => {
     const update = () => setIsTooSmall(window.innerWidth < 450)
@@ -39,119 +39,80 @@ const ControlsPanel: React.FC<ControlsPanelProps> = ({
   return (
     <div>
       {/* Desktop buttons */}
-      <div className="flex gap-4 [@media(max-width:450px)]:hidden">
-        <ControlButtons
-          isSoundOn={isSoundOn}
-          isRunning={isRunning}
-          onToggleRunning={onToggleRunning}
-          onRestart={onRestart}
-          onToggleSound={onToggleSound}
-          disabled={disabled}
-          showLabels={showLabels}
-        />
-      </div>
-
+      {!isTooSmall && (
+        <div className="flex gap-4">
+          <ControlButtons
+            isSoundOn={isSoundOn}
+            isRunning={isRunning}
+            onToggleRunning={onToggleRunning}
+            onRestart={onRestart}
+            onToggleSound={onToggleSound}
+            disabled={disabled}
+            showLabels={showLabels}
+          />
+        </div>
+      )}
       {/* Mobile settings button */}
-      <div className="hidden [@media(max-width:450px)]:flex relative">
-        <button
-          onClick={() => {
-            if (!open && isRunning) onToggleRunning()
-            setOpen((prev) => !prev)
-          }}
-          className="w-10 h-10 bg-indigo-600 hover:bg-indigo-800 rounded-md flex items-center justify-center"
-        >
-          <Settings className="text-white w-6 h-6" />
-        </button>
+      {isTooSmall && (
+        <div className="flex relative">
+          <button
+            aria-label="Toggle settings menu"
+            onClick={() => {
+              if (!open && isRunning) onToggleRunning()
+              setOpen((prev) => !prev)
+            }}
+            className="w-10 h-10 bg-indigo-600 hover:bg-indigo-800 rounded-md flex items-center justify-center"
+          >
+            <Settings className="text-white w-6 h-6" />
+          </button>
 
-        {/* Mobile dropdown menu */}
-        {open && !isTooSmall && (
-          <div className="absolute z-50 top-12 left-0 flex flex-col gap-2 bg-white p-2 rounded shadow-lg w-[150px] max-w-[calc(100vw-2rem)]">
-            <button
-              onClick={() => {
-                onToggleRunning()
-                handleClose()
-              }}
-              className="min-w-[40px] min-h-[40px] w-full bg-indigo-600 hover:bg-indigo-800 rounded-md flex items-center justify-center"
-              disabled={disabled}
-            >
-              {isRunning ? (
-                <PauseIcon className="w-10 h-10 text-white" />
-              ) : (
-                <ContinueIcon className="w-10 h-10 text-white" />
-              )}
-            </button>
-            <button
-              onClick={() => {
-                onRestart()
-                handleClose()
-              }}
-              className="min-w-[40px] min-h-[40px] w-full bg-red-600 hover:bg-red-800 rounded-md flex items-center justify-center"
-              disabled={disabled}
-            >
-              <RestartIcon className="w-5 h-5 text-white" />
-            </button>
-            <button
-              onClick={() => {
-                onToggleSound()
-                handleClose()
-              }}
-              className="min-w-[40px] min-h-[40px] w-full bg-green-600 hover:bg-green-800 rounded-md flex items-center justify-center"
-            >
-              {isSoundOn ? (
-                <SoundsOnIcons className="w-5 h-5 text-white" />
-              ) : (
-                <SoundsOffIcons className="w-5 h-5 text-white" />
-              )}
-            </button>
-          </div>
-        )}
-
-        {/* Mobile modal (tiny screens < 400px) */}
-        {open && isTooSmall && (
-          <div className="fixed inset-0 bg-black bg-opacity-20 z-50 flex justify-center items-center">
-            <div className="bg-white p-4 rounded-md shadow-xl flex flex-col gap-3 w-[200px]">
-              <button
-                onClick={() => {
-                  onToggleRunning()
-                  handleClose()
-                }}
-                className="min-w-[40px] min-h-[40px] bg-indigo-600 hover:bg-indigo-800 text-white rounded-md flex justify-center items-center"
-                disabled={disabled}
-              >
-                {isRunning ? (
-                  <PauseIcon className="w-5 h-5" />
-                ) : (
-                  <ContinueIcon className="w-5 h-5" />
-                )}
-              </button>
-              <button
-                onClick={() => {
-                  onRestart()
-                  handleClose()
-                }}
-                className="min-w-[40px] min-h-[40px] bg-red-600 hover:bg-red-800 text-white rounded-md flex justify-center items-center"
-                disabled={disabled}
-              >
-                <RestartIcon className="w-5 h-5" />
-              </button>
-              <button
-                onClick={() => {
-                  onToggleSound()
-                  onToggleRunning()
-                  handleClose()
-                }}
-                className="min-w-[40px] min-h-[40px] bg-green-600 hover:bg-green-800 text-white rounded-md flex justify-center items-center"
-              >
-                {isSoundOn ? (
-                  <SoundsOnIcons className="w-5 h-5" />
-                ) : (
-                  <SoundsOffIcons className="w-5 h-5" />
-                )}
-              </button>
+          {/* Mobile modal (tiny screens < 400px) */}
+          {open && (
+            <div className="fixed inset-0 bg-black bg-opacity-20 z-50 flex justify-center items-center">
+              <div className="bg-white p-4 rounded-md shadow-xl flex flex-col gap-3 w-[200px]">
+                <button
+                  onClick={() => {
+                    onToggleRunning()
+                    handleClose()
+                  }}
+                  className="min-w-[40px] min-h-[40px] bg-indigo-600 hover:bg-indigo-800 text-white rounded-md flex justify-center items-center"
+                  disabled={disabled}
+                >
+                  {isRunning ? (
+                    <PauseIcon className="w-5 h-5" />
+                  ) : (
+                    <ContinueIcon className="w-5 h-5" />
+                  )}
+                </button>
+                <button
+                  onClick={() => {
+                    onRestart()
+                    handleClose()
+                  }}
+                  className="min-w-[40px] min-h-[40px] bg-red-600 hover:bg-red-800 text-white rounded-md flex justify-center items-center"
+                  disabled={disabled}
+                >
+                  <RestartIcon className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={() => {
+                    onToggleSound()
+                    onToggleRunning()
+                    handleClose()
+                  }}
+                  className="min-w-[40px] min-h-[40px] bg-green-600 hover:bg-green-800 text-white rounded-md flex justify-center items-center"
+                >
+                  {isSoundOn ? (
+                    <SoundsOnIcons className="w-5 h-5" />
+                  ) : (
+                    <SoundsOffIcons className="w-5 h-5" />
+                  )}
+                </button>
+              </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }

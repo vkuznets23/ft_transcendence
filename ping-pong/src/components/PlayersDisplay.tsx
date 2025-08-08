@@ -49,6 +49,7 @@ export const PlayersDisplay: React.FC<PlayersDisplayProps> = ({
 }) => {
   if (isMobile) {
     const isLeft = showPlayer === 'left'
+    const leftPlayerImg = getPlayerImage(playerLeftId)
     const rightPlayerImg =
       gameMode === 'tournament'
         ? getPlayerImage(playerRightId)
@@ -60,8 +61,8 @@ export const PlayersDisplay: React.FC<PlayersDisplayProps> = ({
       <div className="flex items-center justify-between w-full max-w-4xl px-4 gap-2">
         {isLeft ? (
           <>
-            <div className="flex items-center gap-2">
-              <img src={player1} alt="player1" className="h-[40px]" />
+            <div data-testid="livesSector1" className="flex items-center gap-2">
+              <img src={leftPlayerImg} alt="player1" className="h-[40px]" />
               <HeartDisplay score={scoreLeft} player="left" />
             </div>
             <div>{children}</div>
@@ -69,7 +70,7 @@ export const PlayersDisplay: React.FC<PlayersDisplayProps> = ({
         ) : (
           <>
             <div>{children}</div>
-            <div className="flex items-center gap-2">
+            <div data-testid="livesSector2" className="flex items-center gap-2">
               <HeartDisplay score={scoreRight} player="right" />
               <img
                 src={rightPlayerImg}
@@ -91,7 +92,10 @@ export const PlayersDisplay: React.FC<PlayersDisplayProps> = ({
           alt="player left"
           className="h-[40px]"
         />
-        <div className="flex flex-col items-left gap-1">
+        <div
+          data-testid="livesSector1"
+          className="flex flex-col items-left gap-1"
+        >
           <HeartDisplay score={scoreLeft} player="left" />
         </div>
       </div>
@@ -99,7 +103,10 @@ export const PlayersDisplay: React.FC<PlayersDisplayProps> = ({
       <div>{children}</div>
 
       <div className="flex items-center gap-5">
-        <div className="flex flex-col items-end gap-1">
+        <div
+          data-testid="livesSector2"
+          className="flex flex-col items-end gap-1"
+        >
           <HeartDisplay score={scoreRight} player="right" />
         </div>
         <img

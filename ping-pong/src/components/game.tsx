@@ -4,7 +4,10 @@ import { useRef, useEffect, useCallback, useState } from 'react'
 import GameSettingsModal from './TogglableModal'
 import ControlsPanel from './ControllsPannel'
 import PauseModal from './PauseModal'
-import { getPlayerImage, PlayersDisplay } from './PlayersDisplay'
+import { PlayersDisplay } from './PlayersDisplay'
+import { RoundResultModal } from './ResetResultsModal'
+import { TournamentWinnerModal } from './TournamentsWinnerModel'
+import { CasualGameModal } from './CasualGameModal'
 
 // Hooks
 import { useGameSounds } from '../hooks/useGameSounds'
@@ -12,6 +15,7 @@ import { useGameLoop } from '../hooks/useGameLoop'
 import { usePlayerControls } from '../hooks/usePlayerControls'
 import { useAIPlayer } from '../hooks/useAIPlayer'
 import { useGameState } from '../hooks/useGameStates'
+import { useGameInitializer } from '../hooks/useGameInitializer'
 
 // Utils
 import { generateRandomObstacle } from '../utils/generateObstacle'
@@ -25,169 +29,10 @@ import {
   MAX_SPEED,
 } from '../utils/constants'
 import { resetBall } from '../utils/resetBall'
-import type { PlayerID } from '../types/types'
+import { getRoundLabel } from '../utils/getRoundLabel'
 
-function getRoundLabel(index: number): string {
-  switch (index) {
-    case 0:
-      return 'Semifinal'
-    case 1:
-      return 'Semifinal'
-    case 2:
-      return 'Match for 3rd Place'
-    case 3:
-      return 'Final Match'
-    default:
-      return 'Warm-up Round'
-  }
-}
-
-type RoundResultModalProps = {
-  winner: 'player1' | 'player2' | 'player3' | 'player4' | null
-  onNextRound: () => void
-  roundLabel: string
-}
-const RoundResultModal = ({
-  winner,
-  onNextRound,
-  roundLabel,
-}: RoundResultModalProps) => {
-  if (!winner) return null
-
-  const winnerImage = getPlayerImage(winner)
-  return (
-    <div
-      className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50"
-      style={{ backdropFilter: 'blur(4px)' }}
-    >
-      <div className="bg-gray-900 border-4 border-white rounded-lg p-8 w-96 text-center text-white space-y-6">
-        <h2 className="w-full text-center text-2xl font-bold mb-4">
-          🏁 Round winner: {winner}
-        </h2>
-        <div className="flex justify-center">
-          <img
-            src={winnerImage}
-            alt="winner"
-            className="w-24 h-24 object-cover"
-          />
-        </div>
-        <button
-          onClick={onNextRound}
-          className="w-full bg-yellow-400 text-gray-900 font-semibold px-4 py-2 rounded hover:bg-yellow-300 transition"
-        >
-          Next round: {roundLabel}
-        </button>
-      </div>
-    </div>
-  )
-}
-
-const TournamentWinnerModal = ({
-  tournamentWinner,
-  finalStandings,
-  onPlayAgain,
-}: {
-  tournamentWinner: PlayerID | null
-  finalStandings: {
-    first: string | null
-    second: string | null
-    third: string | null
-    fourth: string | null
-  }
-  onPlayAgain: () => void
-}) => {
-  if (!tournamentWinner) return null
-
-  const renderPlayer = (
-    label: string,
-    playerId: string | null,
-    medal: string,
-    fontSizeClass: string
-  ) => {
-    if (!playerId) return null
-    return (
-      <li className="flex items-center gap-4 mb-6">
-        <span className={`${fontSizeClass} `}>
-          {medal} {label}: {playerId}
-        </span>
-        <img
-          src={getPlayerImage(playerId)}
-          alt={playerId}
-          className="w-6 h-6 "
-        />
-      </li>
-    )
-  }
-
-  return (
-    <div
-      className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50"
-      style={{ backdropFilter: 'blur(4px)' }}
-    >
-      <div className="bg-gray-900 border-4 border-white-400 rounded-lg p-8 w-100 text-center text-white space-y-6">
-        <h2 className="w-full text-center text-3xl font-bold mb-4">
-          🏆 Tournament results
-        </h2>
-
-        <ul className="">
-          {renderPlayer('1st place', finalStandings.first, '🥇', 'text-2xl')}
-          {renderPlayer('2nd place', finalStandings.second, '🥈', 'text-xl')}
-          {renderPlayer('3rd place', finalStandings.third, '🥉', 'text-lg')}
-          {renderPlayer('4th place', finalStandings.fourth, '🎖️', 'text-base')}
-        </ul>
-        <button
-          onClick={onPlayAgain}
-          className="bg-yellow-400 w-full text-gray-900 font-semibold px-4 py-2 rounded hover:bg-yellow-300 transition"
-        >
-          Play again
-        </button>
-      </div>
-    </div>
-  )
-}
-
-type CasualGameMofalTypes = {
-  winner: 'player1' | 'player2' | 'playerAI' | null
-  onPlayAgain: () => void
-  opponentType: 'ai' | 'player'
-}
-const CasualGameModal = ({
-  winner,
-  onPlayAgain,
-  opponentType,
-}: CasualGameMofalTypes) => {
-  if (!winner) return null
-
-  const normalizedWinner =
-    opponentType === 'ai' && winner === 'player2' ? 'playerAI' : winner
-
-  const winnerImage = getPlayerImage(normalizedWinner)
-  return (
-    <div
-      className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50"
-      style={{ backdropFilter: 'blur(4px)' }}
-    >
-      <div className="bg-gray-900 border-4 border-white rounded-lg p-8 w-96 text-center text-white space-y-6">
-        <h2 className="w-full text-center text-2xl font-bold mb-4">
-          🏁 Round winner: {normalizedWinner}
-        </h2>
-        <div className="flex justify-center">
-          <img
-            src={winnerImage}
-            alt="winner"
-            className="w-24 h-24 object-cover"
-          />
-        </div>
-        <button
-          onClick={onPlayAgain}
-          className="w-full bg-yellow-400 text-gray-900 font-semibold px-4 py-2 rounded hover:bg-yellow-300 transition"
-        >
-          Play Again
-        </button>
-      </div>
-    </div>
-  )
-}
+//localStorage
+import { loadStats, saveStats } from '../utils/statistic'
 
 const PongGame = () => {
   // Global Game State
@@ -414,68 +259,36 @@ const PongGame = () => {
     toggleRunning()
   }
 
-  const startGameFromModal = () => {
-    playGameStart()
+  const resetPaddlesPosition = useCallback(() => {
+    const centerY = CANVAS_HEIGHT / 2 - paddleHeightRef.current / 2
+    player1Y.current = centerY
+    player2Y.current = centerY
+  }, [paddleHeightRef])
 
-    setTournamentWinner(null)
-    setFinalStandings({
-      first: null,
-      second: null,
-      third: null,
-      fourth: null,
-    })
-    setRoundWinner(null)
-    setShowPauseModal(false)
-    setShowRoundResultModal(false)
+  const initializeGame = useGameInitializer({
+    playGameStart,
+    resetPaddlesPosition,
+    setTournamentWinner,
+    setFinalStandings,
+    setRoundWinner,
+    setShowPauseModal,
+    setShowRoundResultModal,
+    setTournamentWins,
+    setOpponentType,
+    setTournament,
+    setCurrentPlayerA,
+    setCurrentPlayerB,
+    setGameOver,
+    setShowModal,
+    onResetBall,
+    setScore1State,
+    setScore2State,
+    toggleRunning,
+    score1Ref: score1,
+    score2Ref: score2,
+  })
 
-    if (gameMode === 'tournament') {
-      setTournamentWins({ player1: 0, player2: 0, player3: 0, player4: 0 })
-      setOpponentType('player')
-
-      setTournament({
-        matches: [
-          {
-            playerA: 'player1',
-            playerB: 'player2',
-            scoreA: 0,
-            scoreB: 0,
-            winner: null,
-          },
-          {
-            playerA: 'player3',
-            playerB: 'player4',
-            scoreA: 0,
-            scoreB: 0,
-            winner: null,
-          },
-          { playerA: null, playerB: null, scoreA: 0, scoreB: 0, winner: null },
-          {
-            playerA: null,
-            playerB: null,
-            scoreA: 0,
-            scoreB: 0,
-            winner: null,
-          },
-        ],
-        currentMatchIndex: 0,
-        finished: false,
-      })
-    }
-
-    setCurrentPlayerA('player1')
-    setCurrentPlayerB('player2')
-
-    score1.current = 0
-    score2.current = 0
-    setGameOver(false)
-    setShowModal(false)
-    onResetBall(true)
-    setScore1State(0)
-    setScore2State(0)
-    setTimeout(() => {
-      toggleRunning()
-    }, 100)
-  }
+  const startGameFromModal = () => initializeGame(gameMode)
 
   // Update positions of all game elements
   const updatePositions = useCallback(() => {
@@ -572,10 +385,23 @@ const PongGame = () => {
           }
         } else {
           setShowCasualGameModal(true)
+
+          // --- Update localStorage stats
+          const stats = loadStats()
+          stats.casual.totalGames += 1
+          if (opponentType === 'ai') {
+            stats.casual.ai += 1
+          } else if (isPlayer1Goal) {
+            stats.casual.player1 += 1
+          } else {
+            stats.casual.player2 += 1
+          }
+          saveStats(stats)
         }
       } else {
         playAddPoint()
         onResetBall()
+        resetPaddlesPosition()
       }
     }
   }, [
@@ -601,7 +427,30 @@ const PongGame = () => {
     finishCurrentMatch,
     playAddPoint,
     onResetBall,
+    resetPaddlesPosition,
   ])
+
+  useEffect(() => {
+    if (showRoundResultModal && tournament.finished) {
+      const finalMatch = tournament.matches[tournament.matches.length - 1]
+
+      if (finalMatch?.winner) {
+        const stats = loadStats()
+        const winner = finalMatch.winner
+
+        if (
+          winner === 'player1' ||
+          winner === 'player2' ||
+          winner === 'player3' ||
+          winner === 'player4'
+        ) {
+          stats.tournament[winner] += 1
+          stats.tournament.totalTournaments += 1
+          saveStats(stats)
+        }
+      }
+    }
+  }, [showRoundResultModal, tournament])
 
   // Drawing function
   const drawScene = useCallback(
@@ -668,8 +517,35 @@ const PongGame = () => {
     enabled: opponentType === 'ai',
   })
 
+  const onNextRound = () => {
+    setShowRoundResultModal(false)
+    onResetBall(true)
+    isRunningRef.current = true
+    setIsRunning(true)
+    setShowPauseModal(false)
+
+    resetPaddlesPosition()
+    score1.current = 0
+    score2.current = 0
+    setScore1State(0)
+    setScore2State(0)
+    setRoundWinner(null)
+  }
+
   return (
     <div className="flex flex-col items-center gap-6 p-6 min-h-screen">
+      {/* DELETE */}
+      <button
+        onClick={() => {
+          const stats = loadStats()
+          console.log('Current stats:', stats)
+        }}
+        className="text-white border px-4 py-1 rounded"
+      >
+        Show Stats (Dev)
+      </button>
+      {/* DELETE */}
+
       <GameSettingsModal
         buttonText={
           gameMode === 'tournament' ? 'Start tournament' : 'Start the game'
@@ -716,19 +592,7 @@ const PongGame = () => {
         ) : (
           <RoundResultModal
             winner={roundWinner}
-            onNextRound={() => {
-              setShowRoundResultModal(false)
-              onResetBall(true)
-              isRunningRef.current = true
-              setIsRunning(true)
-              setShowPauseModal(false)
-
-              score1.current = 0
-              score2.current = 0
-              setScore1State(0)
-              setScore2State(0)
-              setRoundWinner(null)
-            }}
+            onNextRound={onNextRound}
             roundLabel={getRoundLabel(tournament.currentMatchIndex)}
           />
         ))}
@@ -758,6 +622,7 @@ const PongGame = () => {
         </PlayersDisplay>
       </div>
       <canvas
+        data-testid="canvas"
         ref={canvasRef}
         width={CANVAS_WIDTH}
         height={CANVAS_HEIGHT}

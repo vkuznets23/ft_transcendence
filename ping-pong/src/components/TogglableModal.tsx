@@ -88,6 +88,7 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
           <div className="mb-6">
             <div className="flex justify-center space-x-4">
               <button
+                data-testid="playersMode"
                 onClick={() => onOpponentTypeChange('player')}
                 disabled={isRunning}
                 className={`px-4 w-full  py-2 rounded-md border border-white text-white flex justify-center items-center ${
