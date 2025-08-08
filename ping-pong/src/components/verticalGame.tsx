@@ -30,6 +30,9 @@ import { generateRandomObstacle } from '../utils/generateObstacle'
 import { drawVerticalScene } from '../utils/drawVerticalScene'
 import { getRoundLabel } from '../utils/getRoundLabel'
 
+//localStorage
+import { loadStats, saveStats } from '../utils/statistic'
+
 const VERTICAL_CANVAS_WIDTH = CANVAS_HEIGHT
 const VERTICAL_CANVAS_HEIGHT = CANVAS_WIDTH
 
@@ -355,6 +358,18 @@ const VerticalPongGame: React.FC = () => {
           }
         } else {
           setShowCasualGameModal(true)
+
+          // --- Update localStorage stats
+          const stats = loadStats()
+          stats.casual.totalGames += 1
+          if (opponentType === 'ai') {
+            stats.casual.ai += 1
+          } else if (isPlayer1Goal) {
+            stats.casual.player1 += 1
+          } else {
+            stats.casual.player2 += 1
+          }
+          saveStats(stats)
         }
       } else {
         playAddPoint()
@@ -387,6 +402,28 @@ const VerticalPongGame: React.FC = () => {
     onResetBall,
     resetPaddlesPosition,
   ])
+
+  useEffect(() => {
+    if (showRoundResultModal && tournament.finished) {
+      const finalMatch = tournament.matches[tournament.matches.length - 1]
+
+      if (finalMatch?.winner) {
+        const stats = loadStats()
+        const winner = finalMatch.winner
+
+        if (
+          winner === 'player1' ||
+          winner === 'player2' ||
+          winner === 'player3' ||
+          winner === 'player4'
+        ) {
+          stats.tournament[winner] += 1
+          stats.tournament.totalTournaments += 1
+          saveStats(stats)
+        }
+      }
+    }
+  }, [showRoundResultModal, tournament])
 
   // Drawing function
   const drawScene = useCallback(

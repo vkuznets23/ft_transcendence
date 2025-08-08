@@ -31,6 +31,9 @@ import {
 import { resetBall } from '../utils/resetBall'
 import { getRoundLabel } from '../utils/getRoundLabel'
 
+//localStorage
+import { loadStats, saveStats } from '../utils/statistic'
+
 const PongGame = () => {
   // Global Game State
   const {
@@ -382,6 +385,18 @@ const PongGame = () => {
           }
         } else {
           setShowCasualGameModal(true)
+
+          // --- Update localStorage stats
+          const stats = loadStats()
+          stats.casual.totalGames += 1
+          if (opponentType === 'ai') {
+            stats.casual.ai += 1
+          } else if (isPlayer1Goal) {
+            stats.casual.player1 += 1
+          } else {
+            stats.casual.player2 += 1
+          }
+          saveStats(stats)
         }
       } else {
         playAddPoint()
@@ -414,6 +429,28 @@ const PongGame = () => {
     onResetBall,
     resetPaddlesPosition,
   ])
+
+  useEffect(() => {
+    if (showRoundResultModal && tournament.finished) {
+      const finalMatch = tournament.matches[tournament.matches.length - 1]
+
+      if (finalMatch?.winner) {
+        const stats = loadStats()
+        const winner = finalMatch.winner
+
+        if (
+          winner === 'player1' ||
+          winner === 'player2' ||
+          winner === 'player3' ||
+          winner === 'player4'
+        ) {
+          stats.tournament[winner] += 1
+          stats.tournament.totalTournaments += 1
+          saveStats(stats)
+        }
+      }
+    }
+  }, [showRoundResultModal, tournament])
 
   // Drawing function
   const drawScene = useCallback(
@@ -497,6 +534,18 @@ const PongGame = () => {
 
   return (
     <div className="flex flex-col items-center gap-6 p-6 min-h-screen">
+      {/* DELETE */}
+      <button
+        onClick={() => {
+          const stats = loadStats()
+          console.log('Current stats:', stats)
+        }}
+        className="text-white border px-4 py-1 rounded"
+      >
+        Show Stats (Dev)
+      </button>
+      {/* DELETE */}
+
       <GameSettingsModal
         buttonText={
           gameMode === 'tournament' ? 'Start tournament' : 'Start the game'
@@ -573,6 +622,7 @@ const PongGame = () => {
         </PlayersDisplay>
       </div>
       <canvas
+        data-testid="canvas"
         ref={canvasRef}
         width={CANVAS_WIDTH}
         height={CANVAS_HEIGHT}
