@@ -16,6 +16,7 @@ import { useGameState } from '../hooks/useGameStates'
 import { useAIPlayerVertical } from '../hooks/useAIPlayer'
 import { usePlayerTouchControls } from '../hooks/usePlayerTouchControls'
 import { useGameInitializer } from '../hooks/useGameInitializer'
+import { useLiveAnnouncer } from '../hooks/useVoiceOver'
 
 // Utils
 import {
@@ -92,6 +93,8 @@ const VerticalPongGame: React.FC = () => {
     paddleHeightRef,
     updatePaddleHeight,
   } = useGameState(canvasSize.width, canvasSize.height)
+
+  const announcement = useLiveAnnouncer(score1State, score2State)
 
   const [showCasualGameModal, setShowCasualGameModal] = useState(false)
   const [casualWinner, setCasualWinner] = useState<
@@ -658,6 +661,14 @@ const VerticalPongGame: React.FC = () => {
             roundLabel={getRoundLabel(tournament.currentMatchIndex)}
           />
         ))}
+      <div
+        aria-live="polite"
+        role="status"
+        data-testid="live-announcer"
+        className="sr-only"
+      >
+        {announcement}
+      </div>
     </div>
   )
 }

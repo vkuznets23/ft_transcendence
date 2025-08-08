@@ -16,6 +16,7 @@ import { usePlayerControls } from '../hooks/usePlayerControls'
 import { useAIPlayer } from '../hooks/useAIPlayer'
 import { useGameState } from '../hooks/useGameStates'
 import { useGameInitializer } from '../hooks/useGameInitializer'
+import { useLiveAnnouncer } from '../hooks/useVoiceOver'
 
 // Utils
 import { generateRandomObstacle } from '../utils/generateObstacle'
@@ -83,6 +84,8 @@ const PongGame = () => {
     paddleHeightRef,
     updatePaddleHeight,
   } = useGameState(CANVAS_WIDTH, CANVAS_HEIGHT)
+
+  const announcement = useLiveAnnouncer(score1State, score2State)
 
   const [showCasualGameModal, setShowCasualGameModal] = useState(false)
   const [casualWinner, setCasualWinner] = useState<
@@ -533,9 +536,15 @@ const PongGame = () => {
   }
 
   return (
-    <div className="flex flex-col items-center gap-6 p-6 min-h-screen">
+    <div
+      className="flex flex-col items-center gap-6 p-6 min-h-screen"
+      role="main"
+      data-testid="pong-game-root"
+    >
       {/* DELETE */}
       <button
+        aria-label="Show stats for developers"
+        data-testid="dev-show-stats-btn"
         onClick={() => {
           const stats = loadStats()
           console.log('Current stats:', stats)
@@ -623,11 +632,22 @@ const PongGame = () => {
       </div>
       <canvas
         data-testid="canvas"
+        role="img"
+        aria-label="Game area"
         ref={canvasRef}
         width={CANVAS_WIDTH}
         height={CANVAS_HEIGHT}
         className="border-8 border-white  rounded-md"
       />
+
+      <div
+        aria-live="polite"
+        role="status"
+        data-testid="live-announcer"
+        className="sr-only"
+      >
+        {announcement}
+      </div>
     </div>
   )
 }

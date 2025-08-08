@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useRef } from 'react'
 import player1 from '../assets/images/playerLeft.png'
 import player2 from '../assets/images/playerRight.png'
 import playerAI from '../assets/images/playerAI.png'
@@ -7,6 +7,7 @@ import type {
   DifficultyOption,
   IsTournament,
 } from '../types/types'
+import { useFocusTrap } from '../hooks/useFocuseTrap'
 
 type PaddleSizeOption = 'small' | 'medium' | 'large'
 type OpponentType = 'player' | 'ai'
@@ -44,19 +45,53 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
   isTournament,
   setIsTournament,
 }) => {
+  const firstFocusableRef = useRef<HTMLButtonElement>(null)
+  useEffect(() => {
+    if (show && firstFocusableRef.current) {
+      firstFocusableRef.current.focus()
+    }
+  }, [show])
+
+  const modalRef = useRef<HTMLDivElement>(null)
+  useFocusTrap(modalRef as React.RefObject<HTMLElement>, show)
+
   if (!show) return null
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-90 flex justify-center items-center z-50">
+    <div
+      ref={modalRef}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-title"
+      aria-describedby="modal-desc"
+      className="fixed inset-0 bg-black bg-opacity-90 flex justify-center items-center z-50"
+    >
+      <h2 id="modal-title" className="sr-only">
+        Game Settings
+      </h2>
+      <p id="modal-desc" className="sr-only">
+        Set your game preferences, such as paddle size, difficulty, and opponent
+        type.
+      </p>
       <div className="bg-black border border-white p-8 rounded-2xl text-center min-w-[300px]">
         {/* Tournament */}
         <div className="mb-6">
-          <div className="mb-6 flex items-center justify-between gap-4">
-            <label className={`font-medium text-white min-w-[140px] text-left`}>
+          <div
+            role="radiogroup"
+            aria-labelledby="tournament-label"
+            className="mb-6 flex items-center justify-between gap-4"
+          >
+            <span
+              id="tournament-label"
+              className={`font-medium text-white min-w-[140px] text-left`}
+            >
               Play tournament?
-            </label>
+            </span>
 
             <button
+              ref={firstFocusableRef}
+              role="radio"
+              aria-checked={isTournament === 'CasualGame'}
               onClick={() => setIsTournament('CasualGame')}
               className={`px-6 py-2 rounded-lg border-2 font-semibold border-white text-white transition-opacity duration-300
     ${
@@ -69,6 +104,8 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
               no
             </button>
             <button
+              role="radio"
+              aria-checked={isTournament === 'tournament'}
               onClick={() => setIsTournament('tournament')}
               className={`px-6 py-2 rounded-lg border-2 font-semibold border-white text-white transition-opacity duration-300
     ${
@@ -86,9 +123,15 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
         {/* Opponent */}
         {isTournament === 'CasualGame' && (
           <div className="mb-6">
-            <div className="flex justify-center space-x-4">
+            <div
+              role="radiogroup"
+              aria-labelledby="opponent-label"
+              className="flex justify-center space-x-4"
+            >
               <button
                 data-testid="playersMode"
+                role="radio"
+                aria-checked={opponentType === 'player'}
                 onClick={() => onOpponentTypeChange('player')}
                 disabled={isRunning}
                 className={`px-4 w-full  py-2 rounded-md border border-white text-white flex justify-center items-center ${
@@ -109,6 +152,8 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
                 </div>
               </button>
               <button
+                role="radio"
+                aria-checked={opponentType === 'ai'}
                 onClick={() => onOpponentTypeChange('ai')}
                 disabled={isRunning}
                 className={`px-4 w-full py-2 rounded-md border border-white text-white flex justify-center items-center ${
@@ -135,10 +180,14 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
         {/* AI Difficulty */}
         {opponentType === 'ai' && isTournament === 'CasualGame' && (
           <div className="mb-6 flex items-center justify-between gap-4">
-            <label className="font-medium text-white min-w-[140px] text-left">
+            <label
+              htmlFor="ai-difficulty-select"
+              className="font-medium text-white min-w-[140px] text-left"
+            >
               AI Intelligence:
             </label>
             <select
+              id="ai-difficulty-select"
               value={AIdifficulty}
               onChange={(e) =>
                 onAIDifficultyChange(e.target.value as AIDifficultyOption)
@@ -154,10 +203,14 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
 
         {/* Paddle Size */}
         <div className="mb-6 flex items-center justify-between gap-4">
-          <label className="font-medium text-white min-w-[140px] text-left">
+          <label
+            htmlFor="paddle-size"
+            className="font-medium text-white min-w-[140px] text-left"
+          >
             Paddle size:
           </label>
           <select
+            id="paddle-size"
             value={paddleSizeOption}
             onChange={(e) =>
               onPaddleSizeChange(e.target.value as PaddleSizeOption)
@@ -173,10 +226,14 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
 
         {/* Obstacle */}
         <div className="mb-6 flex items-center justify-between gap-4">
-          <label className="font-medium text-white min-w-[140px] text-left">
+          <label
+            htmlFor="obstacle-select"
+            className="font-medium text-white min-w-[140px] text-left"
+          >
             Obstacle:
           </label>
           <select
+            id="obstacle-select"
             value={difficulty}
             onChange={(e) =>
               onDifficultyChange(e.target.value as DifficultyOption)
