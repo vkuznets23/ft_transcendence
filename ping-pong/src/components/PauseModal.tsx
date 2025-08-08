@@ -43,14 +43,14 @@ const PauseModal: React.FC<PauseModalProps> = ({ onContinue }) => {
         >
           Game paused
         </h2>
-        <p className="text-white mb-6">Press continue to resume.</p>
+        <p className="text-white mb-6">Press continue or space to resume.</p>
         <button
           ref={buttonRef}
           onClick={onContinue}
-          className="group focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-md"
+          className="group w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-md"
           aria-label="Continue game"
         >
-          <div className="px-6 py-2 bg-indigo-600 text-indigo-100 rounded-md flex items-center gap-2 group-hover:bg-indigo-800 transition-colors duration-200">
+          <div className="px-6 py-2 bg-indigo-600 text-indigo-100 rounded-md flex items-center justify-center gap-2 group-hover:bg-indigo-800 transition-colors duration-200">
             <span className="text-indigo-100 group-hover:text-purple-200 font-medium">
               Continue
             </span>
