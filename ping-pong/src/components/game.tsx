@@ -491,7 +491,14 @@ const PongGame = () => {
     const handleSpaceToggle = (e: KeyboardEvent) => {
       if (e.code === 'Space') {
         e.preventDefault()
-        if (!showModal) toggleRunning()
+        if (
+          !showModal &&
+          !showRoundResultModal &&
+          !showPauseModal &&
+          !showCasualGameModal
+        ) {
+          toggleRunning()
+        }
       }
     }
 
@@ -499,7 +506,13 @@ const PongGame = () => {
     return () => {
       window.removeEventListener('keydown', handleSpaceToggle)
     }
-  }, [showModal, toggleRunning])
+  }, [
+    showCasualGameModal,
+    showModal,
+    showPauseModal,
+    showRoundResultModal,
+    toggleRunning,
+  ])
 
   // AI logic
   useAIPlayer({
