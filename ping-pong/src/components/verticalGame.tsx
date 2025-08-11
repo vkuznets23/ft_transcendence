@@ -34,6 +34,7 @@ import { getRoundLabel } from '../utils/getRoundLabel'
 //localStorage
 import { loadStats, saveStats } from '../utils/statistic'
 import { validateAliases } from '../utils/validateAliases'
+import { MatchModal } from './MatchModal'
 
 const VERTICAL_CANVAS_WIDTH = CANVAS_HEIGHT
 const VERTICAL_CANVAS_HEIGHT = CANVAS_WIDTH
@@ -535,8 +536,14 @@ const VerticalPongGame: React.FC = () => {
     enabled: opponentType === 'ai',
   })
 
+  const [showMatchModal, setShowMatchModal] = useState(false)
+
   const onNextRound = () => {
     setShowRoundResultModal(false)
+    setShowMatchModal(true)
+  }
+
+  const onMatchModalClose = () => {
     // onResetBall(true)
     isRunningRef.current = true
     setIsRunning(true)
@@ -548,9 +555,12 @@ const VerticalPongGame: React.FC = () => {
     setScore1State(0)
     setScore2State(0)
     setRoundWinner(null)
+    setShowMatchModal(false)
   }
 
   const isMobile = window.innerWidth < 950
+
+  const winnerAlias = roundWinner ? playerAliases[roundWinner] ?? null : null
 
   return (
     <div className="flex items-center justify-center min-h-screen p-6 bg-black">
@@ -623,6 +633,12 @@ const VerticalPongGame: React.FC = () => {
               setIsRunning(false)
               setGameOver(false)
               setShowModal(true)
+              setPlayerAliases({
+                player1: '',
+                player2: '',
+                player3: '',
+                player4: '',
+              })
             }}
             disabled={showModal}
             isSoundOn={isSoundOn}
@@ -652,6 +668,12 @@ const VerticalPongGame: React.FC = () => {
               setShowModal(true)
               setGameOver(true)
               setRoundWinner(null)
+              setPlayerAliases({
+                player1: '',
+                player2: '',
+                player3: '',
+                player4: '',
+              })
             }}
             playerAliases={playerAliases}
             tournamentWinner={tournamentWinner}
@@ -660,11 +682,20 @@ const VerticalPongGame: React.FC = () => {
         ) : (
           <RoundResultModal
             winner={roundWinner}
-            winnerAlias="winnerAlias"
+            winnerAlias={winnerAlias}
             onNextRound={onNextRound}
             roundLabel={getRoundLabel(tournament.currentMatchIndex)}
           />
         ))}
+      {showMatchModal && (
+        <MatchModal
+          show={showMatchModal}
+          onClose={onMatchModalClose}
+          playerAliases={playerAliases}
+          playerLeft={currentPlayerA ?? undefined}
+          playerRight={currentPlayerB ?? undefined}
+        />
+      )}
       <div
         aria-live="polite"
         role="status"
