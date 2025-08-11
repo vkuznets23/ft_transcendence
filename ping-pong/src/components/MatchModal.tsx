@@ -1,9 +1,10 @@
-import React from 'react'
+import React, { useEffect, useRef } from 'react'
 import Lightning from './lightning'
 import playerLeftImg from '../assets/images/playerLeft.png'
 import playerRightImg from '../assets/images/playerRight.png'
 import player3Img from '../assets/images/player3.png'
 import player4Img from '../assets/images/player4.png'
+import { useFocusTrap } from '../hooks/useFocuseTrap'
 
 interface MatchModalProps {
   show: boolean
@@ -27,6 +28,16 @@ export const MatchModal: React.FC<MatchModalProps> = ({
   playerRight,
   playerAliases,
 }) => {
+  const modalRef = useRef<HTMLDivElement>(null)
+  const firstFocusableRef = useRef<HTMLButtonElement>(null)
+
+  useFocusTrap(modalRef as React.RefObject<HTMLElement>, show)
+
+  useEffect(() => {
+    if (show && firstFocusableRef.current) {
+      firstFocusableRef.current.focus()
+    }
+  }, [show])
   if (!show) return null
 
   return (
@@ -35,6 +46,7 @@ export const MatchModal: React.FC<MatchModalProps> = ({
       onClick={onClose}
     >
       <div
+        ref={modalRef}
         className="bg-[#1f1f1f] rounded-xl p-8 flex flex-col items-center gap-6 relative border-4 border-white"
         onClick={(e) => e.stopPropagation()}
       >
