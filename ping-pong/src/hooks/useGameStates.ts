@@ -5,6 +5,7 @@ import type {
   AIDifficultyOption,
   DifficultyOption,
   PaddleSizeOption,
+  PlayerAliases,
   PlayerID,
   TournamentState,
 } from '../types/types'
@@ -13,6 +14,7 @@ export function useGameState(canvasWidth: number, canvasHeight: number) {
   const [gameMode, setGameMode] = useState<'CasualGame' | 'tournament'>(
     'CasualGame'
   )
+  const [errors, setErrors] = useState<Partial<PlayerAliases>>({})
   const [tournamentWins, setTournamentWins] = useState<
     Record<PlayerID, number>
   >({
@@ -24,7 +26,7 @@ export function useGameState(canvasWidth: number, canvasHeight: number) {
   const [tournamentWinner, setTournamentWinner] = useState<PlayerID | null>(
     null
   )
-  const [playerAliases, setPlayerAliases] = useState<Record<PlayerID, string>>({
+  const [playerAliases, setPlayerAliases] = useState<PlayerAliases>({
     player1: '',
     player2: '',
     player3: '',
@@ -216,6 +218,8 @@ export function useGameState(canvasWidth: number, canvasHeight: number) {
 
   return {
     // States
+    errors,
+    setErrors,
     playerAliases,
     setPlayerAliases,
     setCurrentPlayerA,

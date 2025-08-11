@@ -33,6 +33,7 @@ import { getRoundLabel } from '../utils/getRoundLabel'
 
 //localStorage
 import { loadStats, saveStats } from '../utils/statistic'
+import { validateAliases } from '../utils/validateAliases'
 
 const VERTICAL_CANVAS_WIDTH = CANVAS_HEIGHT
 const VERTICAL_CANVAS_HEIGHT = CANVAS_WIDTH
@@ -47,6 +48,8 @@ const VerticalPongGame: React.FC = () => {
 
   // Global Game State
   const {
+    errors,
+    setErrors,
     playerAliases,
     setPlayerAliases,
     setCurrentPlayerA,
@@ -502,7 +505,11 @@ const VerticalPongGame: React.FC = () => {
   })
 
   const startGameFromModal = () => {
-    initializeGame(gameMode)
+    const validationErrors = validateAliases(playerAliases)
+    setErrors(validationErrors)
+    if (Object.keys(validationErrors).length === 0) {
+      initializeGame(gameMode)
+    }
   }
 
   // const startGameFromModal = () => {
@@ -600,6 +607,7 @@ const VerticalPongGame: React.FC = () => {
           setIsTournament={setGameMode}
           playerAliases={playerAliases}
           setPlayerAliases={setPlayerAliases}
+          errors={errors}
         />
 
         <canvas

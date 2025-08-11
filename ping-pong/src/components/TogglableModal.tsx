@@ -37,6 +37,7 @@ interface GameSettingsModalProps {
   setIsTournament: (value: IsTournament) => void
   playerAliases: PlayerAliases
   setPlayerAliases: (value: PlayerAliases) => void
+  errors: Partial<PlayerAliases>
 }
 
 const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
@@ -56,6 +57,7 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
   setIsTournament,
   playerAliases,
   setPlayerAliases,
+  errors,
 }) => {
   const firstFocusableRef = useRef<HTMLButtonElement>(null)
   useEffect(() => {
@@ -137,80 +139,128 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
               <img
                 src={player1}
                 alt="Player 1"
-                className="w-10 h-10 object-cover "
+                className="w-8 h-8 object-cover "
               />
-              <input
-                type="text"
-                value={playerAliases.player1}
-                onChange={(e) =>
-                  setPlayerAliases({
-                    ...playerAliases,
-                    player1: e.target.value,
-                  })
-                }
-                placeholder="Alias for Player 1"
-                className="flex-1 px-3 py-2 rounded border border-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-              />
+              <div className="flex flex-col gap-1 flex-1">
+                <input
+                  type="text"
+                  value={playerAliases.player1}
+                  onChange={(e) =>
+                    setPlayerAliases({
+                      ...playerAliases,
+                      player1: e.target.value,
+                    })
+                  }
+                  placeholder="Alias for Player 1"
+                  className={`flex-1 px-3 py-2 rounded bg-[#2E2E2E] text-white focus:outline-none focus:ring-2 
+  ${
+    errors.player1
+      ? 'border border-red-500 focus:ring-red-500'
+      : 'focus:ring-yellow-400'
+  }`}
+                />
+                {errors.player1 && (
+                  <p className="text-red-500 text-xs text-right">
+                    {errors.player1}
+                  </p>
+                )}
+              </div>
             </div>
 
             <div className="flex items-center gap-4">
               <img
                 src={player2}
                 alt="Player 2"
-                className="w-10 h-10 object-cover "
+                className="w-8 h-8 object-cover "
               />
-              <input
-                type="text"
-                value={playerAliases.player2}
-                onChange={(e) =>
-                  setPlayerAliases({
-                    ...playerAliases,
-                    player2: e.target.value,
-                  })
-                }
-                placeholder="Alias for Player 2"
-                className="flex-1 px-3 py-2 rounded border border-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-              />
+              <div className="flex flex-col gap-1 flex-1">
+                <input
+                  type="text"
+                  value={playerAliases.player2}
+                  onChange={(e) =>
+                    setPlayerAliases({
+                      ...playerAliases,
+                      player2: e.target.value,
+                    })
+                  }
+                  placeholder="Alias for Player 2"
+                  className={`flex-1 px-3 py-2 rounded bg-[#2E2E2E] text-white focus:outline-none focus:ring-2 
+  ${
+    errors.player2
+      ? 'border border-red-500 focus:ring-red-500'
+      : 'focus:ring-yellow-400'
+  }`}
+                />
+                {errors.player2 && (
+                  <p className="text-red-500 text-xs text-right">
+                    {errors.player2}
+                  </p>
+                )}
+              </div>
             </div>
 
             <div className="flex items-center gap-4">
               <img
                 src={player3}
                 alt="Player 3"
-                className="w-10 h-10 object-cover "
+                className="w-8 h-8 object-cover "
               />
-              <input
-                type="text"
-                value={playerAliases.player3}
-                onChange={(e) =>
-                  setPlayerAliases({
-                    ...playerAliases,
-                    player3: e.target.value,
-                  })
-                }
-                placeholder="Alias for Player 3"
-                className="flex-1 px-3 py-2 rounded border border-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-              />
+              <div className="flex flex-col gap-1 flex-1">
+                <input
+                  type="text"
+                  value={playerAliases.player3}
+                  onChange={(e) =>
+                    setPlayerAliases({
+                      ...playerAliases,
+                      player3: e.target.value,
+                    })
+                  }
+                  placeholder="Alias for Player 3"
+                  className={`flex-1 px-3 py-2 rounded bg-[#2E2E2E] text-white focus:outline-none focus:ring-2 
+  ${
+    errors.player3
+      ? 'border border-red-500 focus:ring-red-500'
+      : 'focus:ring-yellow-400'
+  }`}
+                />
+                {errors.player3 && (
+                  <p className="text-red-500 text-xs mt-0 text-right">
+                    {errors.player3}
+                  </p>
+                )}
+              </div>
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 ">
               <img
                 src={player4}
                 alt="Player 4"
-                className="w-10 h-10 object-cover "
+                className="w-8 h-8 object-cover "
               />
-              <input
-                type="text"
-                value={playerAliases.player4}
-                onChange={(e) =>
-                  setPlayerAliases({
-                    ...playerAliases,
-                    player4: e.target.value,
-                  })
-                }
-                placeholder="Alias for Player 4"
-                className="flex-1 px-3 py-2 rounded border border-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-              />
+              <div className="flex flex-col gap-1 flex-1">
+                <input
+                  type="text"
+                  value={playerAliases.player4}
+                  onChange={(e) =>
+                    setPlayerAliases({
+                      ...playerAliases,
+                      player4: e.target.value,
+                    })
+                  }
+                  placeholder="Alias for Player 4"
+                  className={`flex-1 px-3 py-2 rounded bg-[#2E2E2E] text-white focus:outline-none focus:ring-2 
+  ${
+    errors.player4
+      ? 'border border-red-500 focus:ring-red-500'
+      : 'focus:ring-yellow-400'
+  }`}
+                />
+                {errors.player4 && (
+                  <p className="text-red-500 text-xs mt-0  mb-0 text-right">
+                    {errors.player4}
+                  </p>
+                )}
+              </div>
             </div>
           </div>
         )}

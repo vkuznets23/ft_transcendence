@@ -45,3 +45,5 @@ export type TournamentState = {
   currentMatchIndex: number
   finished: boolean
 }
+
+export type PlayerAliases = Record<PlayerID, string>
