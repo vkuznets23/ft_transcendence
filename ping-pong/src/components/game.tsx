@@ -35,6 +35,7 @@ import { getRoundLabel } from '../utils/getRoundLabel'
 //localStorage
 import { loadStats, saveStats } from '../utils/statistic'
 import { validateAliases } from '../utils/validateAliases'
+import { MatchModal } from './MatchModal'
 
 const PongGame = () => {
   // Global Game State
@@ -549,8 +550,14 @@ const PongGame = () => {
     enabled: opponentType === 'ai',
   })
 
+  const [showMatchModal, setShowMatchModal] = useState(false)
+
   const onNextRound = () => {
     setShowRoundResultModal(false)
+    setShowMatchModal(true)
+  }
+
+  const onMatchModalClose = () => {
     onResetBall(true)
     isRunningRef.current = true
     setIsRunning(true)
@@ -562,6 +569,7 @@ const PongGame = () => {
     setScore1State(0)
     setScore2State(0)
     setRoundWinner(null)
+    setShowMatchModal(false)
   }
 
   const winnerAlias = roundWinner ? playerAliases[roundWinner] ?? null : null
@@ -647,6 +655,15 @@ const PongGame = () => {
             roundLabel={getRoundLabel(tournament.currentMatchIndex)}
           />
         ))}
+      {showMatchModal && (
+        <MatchModal
+          show={showMatchModal}
+          onClose={onMatchModalClose}
+          playerAliases={playerAliases}
+          playerLeft={currentPlayerA ?? undefined}
+          playerRight={currentPlayerB ?? undefined}
+        />
+      )}
 
       <div className="flex items-center gap-10">
         <PlayersDisplay
