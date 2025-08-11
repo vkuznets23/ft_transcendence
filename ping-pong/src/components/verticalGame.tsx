@@ -505,26 +505,16 @@ const VerticalPongGame: React.FC = () => {
   })
 
   const startGameFromModal = () => {
-    const validationErrors = validateAliases(playerAliases)
-    setErrors(validationErrors)
-    if (Object.keys(validationErrors).length === 0) {
+    if (gameMode === 'tournament') {
+      const validationErrors = validateAliases(playerAliases)
+      setErrors(validationErrors)
+      if (Object.keys(validationErrors).length === 0) {
+        initializeGame(gameMode)
+      }
+    } else {
       initializeGame(gameMode)
     }
   }
-
-  // const startGameFromModal = () => {
-  //   playGameStart()
-  //   score1.current = 0
-  //   score2.current = 0
-  //   setGameOver(false)
-  //   setShowModal(false)
-  //   setScore1State(0)
-  //   setScore2State(0)
-  //   resetBall()
-  //   setTimeout(() => {
-  //     toggleRunning()
-  //   }, 100)
-  // }
 
   // AI logic
   useAIPlayerVertical({

@@ -297,9 +297,13 @@ const PongGame = () => {
   })
 
   const startGameFromModal = () => {
-    const validationErrors = validateAliases(playerAliases)
-    setErrors(validationErrors)
-    if (Object.keys(validationErrors).length === 0) {
+    if (gameMode === 'tournament') {
+      const validationErrors = validateAliases(playerAliases)
+      setErrors(validationErrors)
+      if (Object.keys(validationErrors).length === 0) {
+        initializeGame(gameMode)
+      }
+    } else {
       initializeGame(gameMode)
     }
   }
