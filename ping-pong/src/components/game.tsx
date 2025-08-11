@@ -16,6 +16,7 @@ import { usePlayerControls } from '../hooks/usePlayerControls'
 import { useAIPlayer } from '../hooks/useAIPlayer'
 import { useGameState } from '../hooks/useGameStates'
 import { useGameInitializer } from '../hooks/useGameInitializer'
+import { useLiveAnnouncer } from '../hooks/useVoiceOver'
 
 // Utils
 import { generateRandomObstacle } from '../utils/generateObstacle'
@@ -33,10 +34,16 @@ import { getRoundLabel } from '../utils/getRoundLabel'
 
 //localStorage
 import { loadStats, saveStats } from '../utils/statistic'
+import { validateAliases } from '../utils/validateAliases'
+import { MatchModal } from './MatchModal'
 
 const PongGame = () => {
   // Global Game State
   const {
+    errors,
+    setErrors,
+    playerAliases,
+    setPlayerAliases,
     setCurrentPlayerA,
     setCurrentPlayerB,
     finalStandings,
@@ -83,6 +90,8 @@ const PongGame = () => {
     paddleHeightRef,
     updatePaddleHeight,
   } = useGameState(CANVAS_WIDTH, CANVAS_HEIGHT)
+
+  const announcement = useLiveAnnouncer(score1State, score2State)
 
   const [showCasualGameModal, setShowCasualGameModal] = useState(false)
   const [casualWinner, setCasualWinner] = useState<
@@ -288,7 +297,17 @@ const PongGame = () => {
     score2Ref: score2,
   })
 
-  const startGameFromModal = () => initializeGame(gameMode)
+  const startGameFromModal = () => {
+    if (gameMode === 'tournament') {
+      const validationErrors = validateAliases(playerAliases)
+      setErrors(validationErrors)
+      if (Object.keys(validationErrors).length === 0) {
+        initializeGame(gameMode)
+      }
+    } else {
+      initializeGame(gameMode)
+    }
+  }
 
   // Update positions of all game elements
   const updatePositions = useCallback(() => {
@@ -372,6 +391,7 @@ const PongGame = () => {
 
         if (gameMode === 'tournament') {
           const winner = isPlayer1Goal ? currentPlayerA : currentPlayerB
+
           setRoundWinner(winner ?? null)
           setShowRoundResultModal(true)
 
@@ -488,7 +508,14 @@ const PongGame = () => {
     const handleSpaceToggle = (e: KeyboardEvent) => {
       if (e.code === 'Space') {
         e.preventDefault()
-        if (!showModal) toggleRunning()
+        if (
+          !showModal &&
+          !showRoundResultModal &&
+          !showPauseModal &&
+          !showCasualGameModal
+        ) {
+          toggleRunning()
+        }
       }
     }
 
@@ -496,7 +523,13 @@ const PongGame = () => {
     return () => {
       window.removeEventListener('keydown', handleSpaceToggle)
     }
-  }, [showModal, toggleRunning])
+  }, [
+    showCasualGameModal,
+    showModal,
+    showPauseModal,
+    showRoundResultModal,
+    toggleRunning,
+  ])
 
   // AI logic
   useAIPlayer({
@@ -517,8 +550,14 @@ const PongGame = () => {
     enabled: opponentType === 'ai',
   })
 
+  const [showMatchModal, setShowMatchModal] = useState(false)
+
   const onNextRound = () => {
     setShowRoundResultModal(false)
+    setShowMatchModal(true)
+  }
+
+  const onMatchModalClose = () => {
     onResetBall(true)
     isRunningRef.current = true
     setIsRunning(true)
@@ -530,12 +569,21 @@ const PongGame = () => {
     setScore1State(0)
     setScore2State(0)
     setRoundWinner(null)
+    setShowMatchModal(false)
   }
 
+  const winnerAlias = roundWinner ? playerAliases[roundWinner] ?? null : null
+
   return (
-    <div className="flex flex-col items-center gap-6 p-6 min-h-screen">
+    <div
+      className="flex flex-col items-center gap-6 p-6 min-h-screen"
+      role="main"
+      data-testid="pong-game-root"
+    >
       {/* DELETE */}
       <button
+        aria-label="Show stats for developers"
+        data-testid="dev-show-stats-btn"
         onClick={() => {
           const stats = loadStats()
           console.log('Current stats:', stats)
@@ -563,6 +611,9 @@ const PongGame = () => {
         onStart={startGameFromModal}
         isTournament={gameMode}
         setIsTournament={setGameMode}
+        playerAliases={playerAliases}
+        setPlayerAliases={setPlayerAliases}
+        errors={errors}
       />
 
       {showPauseModal && <PauseModal onContinue={handleContinueFromPause} />}
@@ -585,17 +636,34 @@ const PongGame = () => {
               setShowModal(true)
               setGameOver(true)
               setRoundWinner(null)
+              setPlayerAliases({
+                player1: '',
+                player2: '',
+                player3: '',
+                player4: '',
+              })
             }}
+            playerAliases={playerAliases}
             tournamentWinner={tournamentWinner}
             finalStandings={finalStandings}
           />
         ) : (
           <RoundResultModal
             winner={roundWinner}
+            winnerAlias={winnerAlias}
             onNextRound={onNextRound}
             roundLabel={getRoundLabel(tournament.currentMatchIndex)}
           />
         ))}
+      {showMatchModal && (
+        <MatchModal
+          show={showMatchModal}
+          onClose={onMatchModalClose}
+          playerAliases={playerAliases}
+          playerLeft={currentPlayerA ?? undefined}
+          playerRight={currentPlayerB ?? undefined}
+        />
+      )}
 
       <div className="flex items-center gap-10">
         <PlayersDisplay
@@ -614,6 +682,12 @@ const PongGame = () => {
               setIsRunning(false)
               setGameOver(false)
               setShowModal(true)
+              setPlayerAliases({
+                player1: '',
+                player2: '',
+                player3: '',
+                player4: '',
+              })
             }}
             disabled={showModal}
             isSoundOn={isSoundOn}
@@ -623,11 +697,22 @@ const PongGame = () => {
       </div>
       <canvas
         data-testid="canvas"
+        role="img"
+        aria-label="Game area"
         ref={canvasRef}
         width={CANVAS_WIDTH}
         height={CANVAS_HEIGHT}
         className="border-8 border-white  rounded-md"
       />
+
+      <div
+        aria-live="polite"
+        role="status"
+        data-testid="live-announcer"
+        className="sr-only"
+      >
+        {announcement}
+      </div>
     </div>
   )
 }
