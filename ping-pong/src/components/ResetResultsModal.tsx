@@ -6,11 +6,13 @@ type RoundResultModalProps = {
   winner: 'player1' | 'player2' | 'player3' | 'player4' | null
   onNextRound: () => void
   roundLabel: string
+  winnerAlias: string | null
 }
 export const RoundResultModal = ({
   winner,
   onNextRound,
   roundLabel,
+  winnerAlias,
 }: RoundResultModalProps) => {
   const firstFocusableRef = useRef<HTMLButtonElement>(null)
   useEffect(() => {
@@ -42,16 +44,16 @@ export const RoundResultModal = ({
           id="modal-title"
           className="w-full text-center text-2xl font-bold mb-4"
         >
-          🏁 Round winner: {winner}
+          🏁 Round winner: {winnerAlias}
         </h2>
         <p id="modal-description" className="sr-only">
-          The winner of the round is {winner}. You can proceed to the next round
-          by pressing the button below.
+          The winner of the round is {winnerAlias}. You can proceed to the next
+          round by pressing the button below.
         </p>
         <div className="flex justify-center">
           <img
             src={winnerImage}
-            alt={`Winner is ${winner}`}
+            alt={`Winner is ${winnerAlias}`}
             className="w-24 h-24 object-cover"
           />
         </div>

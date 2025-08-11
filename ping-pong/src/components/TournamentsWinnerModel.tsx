@@ -7,6 +7,7 @@ export const TournamentWinnerModal = ({
   tournamentWinner,
   finalStandings,
   onPlayAgain,
+  playerAliases,
 }: {
   tournamentWinner: PlayerID | null
   finalStandings: {
@@ -16,6 +17,7 @@ export const TournamentWinnerModal = ({
     fourth: string | null
   }
   onPlayAgain: () => void
+  playerAliases: Record<string, string>
 }) => {
   const firstFocusableRef = useRef<HTMLButtonElement>(null)
   useEffect(() => {
@@ -38,10 +40,11 @@ export const TournamentWinnerModal = ({
     fontSizeClass: string
   ) => {
     if (!playerId) return null
+    const alias = playerAliases[playerId] ?? playerId
     return (
       <li className="flex items-center gap-4 mb-6">
         <span className={`${fontSizeClass} `}>
-          {medal} {label}: {playerId}
+          {medal} {label}: {alias}
         </span>
         <img
           src={getPlayerImage(playerId)}

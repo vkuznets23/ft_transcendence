@@ -38,6 +38,8 @@ import { loadStats, saveStats } from '../utils/statistic'
 const PongGame = () => {
   // Global Game State
   const {
+    playerAliases,
+    setPlayerAliases,
     setCurrentPlayerA,
     setCurrentPlayerB,
     finalStandings,
@@ -375,6 +377,7 @@ const PongGame = () => {
 
         if (gameMode === 'tournament') {
           const winner = isPlayer1Goal ? currentPlayerA : currentPlayerB
+
           setRoundWinner(winner ?? null)
           setShowRoundResultModal(true)
 
@@ -548,6 +551,8 @@ const PongGame = () => {
     setRoundWinner(null)
   }
 
+  const winnerAlias = roundWinner ? playerAliases[roundWinner] ?? null : null
+
   return (
     <div
       className="flex flex-col items-center gap-6 p-6 min-h-screen"
@@ -585,6 +590,8 @@ const PongGame = () => {
         onStart={startGameFromModal}
         isTournament={gameMode}
         setIsTournament={setGameMode}
+        playerAliases={playerAliases}
+        setPlayerAliases={setPlayerAliases}
       />
 
       {showPauseModal && <PauseModal onContinue={handleContinueFromPause} />}
@@ -607,13 +614,21 @@ const PongGame = () => {
               setShowModal(true)
               setGameOver(true)
               setRoundWinner(null)
+              setPlayerAliases({
+                player1: '',
+                player2: '',
+                player3: '',
+                player4: '',
+              })
             }}
+            playerAliases={playerAliases}
             tournamentWinner={tournamentWinner}
             finalStandings={finalStandings}
           />
         ) : (
           <RoundResultModal
             winner={roundWinner}
+            winnerAlias={winnerAlias}
             onNextRound={onNextRound}
             roundLabel={getRoundLabel(tournament.currentMatchIndex)}
           />
@@ -636,6 +651,12 @@ const PongGame = () => {
               setIsRunning(false)
               setGameOver(false)
               setShowModal(true)
+              setPlayerAliases({
+                player1: '',
+                player2: '',
+                player3: '',
+                player4: '',
+              })
             }}
             disabled={showModal}
             isSoundOn={isSoundOn}

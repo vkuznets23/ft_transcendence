@@ -1,6 +1,8 @@
 import React, { useEffect, useRef } from 'react'
 import player1 from '../assets/images/playerLeft.png'
 import player2 from '../assets/images/playerRight.png'
+import player3 from '../assets/images/player3.png'
+import player4 from '../assets/images/player4.png'
 import playerAI from '../assets/images/playerAI.png'
 import type {
   AIDifficultyOption,
@@ -11,6 +13,12 @@ import { useFocusTrap } from '../hooks/useFocuseTrap'
 
 type PaddleSizeOption = 'small' | 'medium' | 'large'
 type OpponentType = 'player' | 'ai'
+interface PlayerAliases {
+  player1: string
+  player2: string
+  player3: string
+  player4: string
+}
 
 interface GameSettingsModalProps {
   buttonText: string
@@ -27,6 +35,8 @@ interface GameSettingsModalProps {
   onOpponentTypeChange: (value: OpponentType) => void
   isTournament: IsTournament
   setIsTournament: (value: IsTournament) => void
+  playerAliases: PlayerAliases
+  setPlayerAliases: (value: PlayerAliases) => void
 }
 
 const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
@@ -44,6 +54,8 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
   onOpponentTypeChange,
   isTournament,
   setIsTournament,
+  playerAliases,
+  setPlayerAliases,
 }) => {
   const firstFocusableRef = useRef<HTMLButtonElement>(null)
   useEffect(() => {
@@ -119,6 +131,89 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
             </button>
           </div>
         </div>
+        {isTournament === 'tournament' && (
+          <div className="space-y-4 mb-6">
+            <div className="flex items-center gap-4">
+              <img
+                src={player1}
+                alt="Player 1"
+                className="w-10 h-10 object-cover "
+              />
+              <input
+                type="text"
+                value={playerAliases.player1}
+                onChange={(e) =>
+                  setPlayerAliases({
+                    ...playerAliases,
+                    player1: e.target.value,
+                  })
+                }
+                placeholder="Alias for Player 1"
+                className="flex-1 px-3 py-2 rounded border border-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+              />
+            </div>
+
+            <div className="flex items-center gap-4">
+              <img
+                src={player2}
+                alt="Player 2"
+                className="w-10 h-10 object-cover "
+              />
+              <input
+                type="text"
+                value={playerAliases.player2}
+                onChange={(e) =>
+                  setPlayerAliases({
+                    ...playerAliases,
+                    player2: e.target.value,
+                  })
+                }
+                placeholder="Alias for Player 2"
+                className="flex-1 px-3 py-2 rounded border border-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+              />
+            </div>
+
+            <div className="flex items-center gap-4">
+              <img
+                src={player3}
+                alt="Player 3"
+                className="w-10 h-10 object-cover "
+              />
+              <input
+                type="text"
+                value={playerAliases.player3}
+                onChange={(e) =>
+                  setPlayerAliases({
+                    ...playerAliases,
+                    player3: e.target.value,
+                  })
+                }
+                placeholder="Alias for Player 3"
+                className="flex-1 px-3 py-2 rounded border border-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+              />
+            </div>
+
+            <div className="flex items-center gap-4">
+              <img
+                src={player4}
+                alt="Player 4"
+                className="w-10 h-10 object-cover "
+              />
+              <input
+                type="text"
+                value={playerAliases.player4}
+                onChange={(e) =>
+                  setPlayerAliases({
+                    ...playerAliases,
+                    player4: e.target.value,
+                  })
+                }
+                placeholder="Alias for Player 4"
+                className="flex-1 px-3 py-2 rounded border border-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+              />
+            </div>
+          </div>
+        )}
 
         {/* Opponent */}
         {isTournament === 'CasualGame' && (

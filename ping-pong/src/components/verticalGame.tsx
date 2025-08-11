@@ -47,6 +47,8 @@ const VerticalPongGame: React.FC = () => {
 
   // Global Game State
   const {
+    playerAliases,
+    setPlayerAliases,
     setCurrentPlayerA,
     setCurrentPlayerB,
     finalStandings,
@@ -596,6 +598,8 @@ const VerticalPongGame: React.FC = () => {
           onStart={startGameFromModal}
           isTournament={gameMode}
           setIsTournament={setGameMode}
+          playerAliases={playerAliases}
+          setPlayerAliases={setPlayerAliases}
         />
 
         <canvas
@@ -651,12 +655,14 @@ const VerticalPongGame: React.FC = () => {
               setGameOver(true)
               setRoundWinner(null)
             }}
+            playerAliases={playerAliases}
             tournamentWinner={tournamentWinner}
             finalStandings={finalStandings}
           />
         ) : (
           <RoundResultModal
             winner={roundWinner}
+            winnerAlias="winnerAlias"
             onNextRound={onNextRound}
             roundLabel={getRoundLabel(tournament.currentMatchIndex)}
           />

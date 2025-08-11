@@ -24,6 +24,12 @@ export function useGameState(canvasWidth: number, canvasHeight: number) {
   const [tournamentWinner, setTournamentWinner] = useState<PlayerID | null>(
     null
   )
+  const [playerAliases, setPlayerAliases] = useState<Record<PlayerID, string>>({
+    player1: '',
+    player2: '',
+    player3: '',
+    player4: '',
+  })
   const [finalStandings, setFinalStandings] = useState<
     Record<'first' | 'second' | 'third' | 'fourth', PlayerID | null>
   >({
@@ -210,6 +216,8 @@ export function useGameState(canvasWidth: number, canvasHeight: number) {
 
   return {
     // States
+    playerAliases,
+    setPlayerAliases,
     setCurrentPlayerA,
     setCurrentPlayerB,
     finalStandings,
