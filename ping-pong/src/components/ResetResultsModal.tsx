@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { getPlayerImage } from './PlayersDisplay'
 import { useFocusTrap } from '../hooks/useFocuseTrap'
+import { useTextSize } from '../context/fontGlobal'
 
 type RoundResultModalProps = {
   winner: 'player1' | 'player2' | 'player3' | 'player4' | null
@@ -14,6 +15,8 @@ export const RoundResultModal = ({
   roundLabel,
   winnerAlias,
 }: RoundResultModalProps) => {
+  const { textClass, headingClass } = useTextSize()
+
   const firstFocusableRef = useRef<HTMLButtonElement>(null)
   useEffect(() => {
     if (winner && firstFocusableRef.current) {
@@ -38,15 +41,16 @@ export const RoundResultModal = ({
     >
       <div
         ref={modalRef}
+        tabIndex={-1}
         className="bg-gray-900 border-4 border-white rounded-lg p-8 w-96 text-center text-white space-y-6"
       >
         <h2
           id="modal-title"
-          className="w-full text-center text-2xl font-bold mb-4"
+          className={` ${headingClass} w-full text-center  font-bold mb-4`}
         >
           🏁 Round winner: {winnerAlias}
         </h2>
-        <p id="modal-description" className="sr-only">
+        <p id="modal-description" className="sr-only" aria-live="polite">
           The winner of the round is {winnerAlias}. You can proceed to the next
           round by pressing the button below.
         </p>
@@ -59,9 +63,10 @@ export const RoundResultModal = ({
         </div>
         <button
           ref={firstFocusableRef}
+          type="button"
           aria-label={`Proceed to next round: ${roundLabel}`}
           onClick={onNextRound}
-          className="w-full bg-yellow-400 text-gray-900 font-semibold px-4 py-2 rounded hover:bg-yellow-300 transition"
+          className={`${textClass} w-full bg-yellow-400 text-gray-900 font-semibold px-4 py-2 rounded hover:bg-yellow-300 transition`}
         >
           Next round: {roundLabel}
         </button>

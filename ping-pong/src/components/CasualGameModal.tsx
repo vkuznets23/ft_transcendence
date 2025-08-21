@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { getPlayerImage } from './PlayersDisplay'
 import { useFocusTrap } from '../hooks/useFocuseTrap'
 import { PlayerAliases } from '../types/types'
+import { useTextSize } from '../context/fontGlobal'
 
 type CasualGameMofalTypes = {
   winner: 'player1' | 'player2' | null
@@ -15,6 +16,8 @@ export const CasualGameModal = ({
   opponentType,
   playerAliases,
 }: CasualGameMofalTypes) => {
+  const { textClass, headingClass } = useTextSize()
+
   const firstFocusableRef = useRef<HTMLButtonElement>(null)
   useEffect(() => {
     if (winner && firstFocusableRef.current) {
@@ -44,11 +47,8 @@ export const CasualGameModal = ({
         ref={modalRef}
         className="bg-gray-900 border-4 border-white rounded-lg p-8 w-96 text-center text-white space-y-6"
       >
-        <h2
-          id="modal-title"
-          className="w-full text-center text-2xl font-bold mb-4"
-        >
-          🏁 Round winner: {displayName}
+        <h2 className={`w-full text-center font-bold mb-4 ${headingClass}`}>
+          🏁 Round winner: Player
         </h2>
 
         <div className="flex justify-center">
@@ -62,7 +62,7 @@ export const CasualGameModal = ({
           type="button"
           ref={firstFocusableRef}
           onClick={onPlayAgain}
-          className="w-full bg-yellow-400 text-gray-900 font-semibold px-4 py-2 rounded hover:bg-yellow-300 transition"
+          className={`w-full bg-yellow-400 text-gray-900 font-semibold px-4 py-2 rounded hover:bg-yellow-300 transition ${textClass}`}
         >
           Play Again
         </button>

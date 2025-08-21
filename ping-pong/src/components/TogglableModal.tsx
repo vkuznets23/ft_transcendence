@@ -37,7 +37,6 @@ interface GameSettingsModalProps {
   setIsTournament: (value: IsTournament) => void
   playerAliases: PlayerAliases
   setPlayerAliases: (value: PlayerAliases) => void
-  errors: Partial<PlayerAliases>
 }
 
 const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
@@ -57,7 +56,6 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
   setIsTournament,
   playerAliases,
   setPlayerAliases,
-  errors,
 }) => {
   const firstFocusableRef = useRef<HTMLButtonElement>(null)
   useEffect(() => {
@@ -189,12 +187,15 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
 
         {/* Display aliases */}
         {isTournament === 'tournament' && (
-          <div className="mb-6 grid grid-cols-2 gap-4 justify-items-center">
+          <div className="mb-6 grid grid-cols-2 gap-4 justify-items-center pointer-events-none">
             {[1, 2, 3, 4].map((n) => {
               const imgSrc = [player1, player2, player3, player4][n - 1]
               const alias = playerAliases[`player${n}` as keyof PlayerAliases]
               return (
-                <div key={n} className="flex flex-col items-center gap-2">
+                <div
+                  key={n}
+                  className="flex flex-col items-center gap-2 pointer-events-auto"
+                >
                   <img
                     src={imgSrc}
                     alt={`Player ${n}`}

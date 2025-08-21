@@ -4,6 +4,7 @@ import { ContinueIcon } from './Btns/ContinueBtn'
 import { RestartIcon } from './Btns/RestartBtn'
 import { SoundsOffIcons, SoundsOnIcons } from './Btns/SoundsBtns'
 import { Settings } from './Btns/Settings'
+import { useTextSize } from '../context/fontGlobal'
 
 type ControlsPanelProps = {
   isSoundOn: boolean
@@ -127,62 +128,84 @@ const ControlButtons = ({
   onToggleSound,
   disabled,
   showLabels,
-}: ControlsPanelProps) => (
-  <>
-    <button
-      onClick={onToggleRunning}
-      disabled={disabled}
-      className="px-4 py-2 disabled:cursor-not-allowed flex items-center gap-2 rounded-md group bg-indigo-600 hover:bg-indigo-800 transition-colors duration-200"
-    >
-      {isRunning ? (
-        <>
-          {showLabels && (
-            <span className="text-indigo-100 group-hover:text-purple-200 font-medium">
-              Pause
-            </span>
-          )}
-          <PauseIcon className="w-5 h-5 text-indigo-100" />
-        </>
-      ) : (
-        <>
-          {showLabels && (
-            <span className="text-indigo-100 group-hover:text-purple-200 font-medium">
-              Continue
-            </span>
-          )}
-          <ContinueIcon className="w-5 h-5 text-indigo-100" />
-        </>
-      )}
-    </button>
+}: ControlsPanelProps) => {
+  const { textClass } = useTextSize()
 
-    <button
-      onClick={onRestart}
-      disabled={disabled}
-      className="px-4 py-2 flex items-center gap-2 rounded-md group bg-red-600 hover:bg-red-800 transition-colors duration-200"
-    >
-      {showLabels && (
-        <span className="text-indigo-100 group-hover:text-purple-200 font-medium">
-          Restart
-        </span>
-      )}
-      <RestartIcon className="w-5 h-5 text-indigo-100" />
-    </button>
+  return (
+    <>
+      <button
+        onClick={onToggleRunning}
+        disabled={disabled}
+        className="px-4 py-2 disabled:cursor-not-allowed flex items-center gap-2 rounded-md group bg-indigo-600 hover:bg-indigo-800 transition-colors duration-200"
+      >
+        {isRunning ? (
+          <>
+            {showLabels && (
+              <span
+                className={`${textClass} text-indigo-100 group-hover:text-purple-200 font-medium`}
+              >
+                Pause
+              </span>
+            )}
+            <PauseIcon className="w-5 h-5 text-indigo-100" />
+          </>
+        ) : (
+          <>
+            {showLabels && (
+              <span
+                className={`${textClass} text-indigo-100 group-hover:text-purple-200 font-medium`}
+              >
+                Continue
+              </span>
+            )}
+            <ContinueIcon className="w-5 h-5 text-indigo-100" />
+          </>
+        )}
+      </button>
 
-    <button
-      onClick={onToggleSound}
-      className="flex items-center px-4 py-2 bg-green-600 hover:bg-green-800 rounded text-white"
-    >
-      {isSoundOn ? (
-        <div className="flex items-center gap-2">
-          {showLabels && <span>Sounds on</span>}
-          <SoundsOnIcons />
-        </div>
-      ) : (
-        <div className="flex items-center gap-2">
-          {showLabels && <span>Sounds off</span>}
-          <SoundsOffIcons />
-        </div>
-      )}
-    </button>
-  </>
-)
+      <button
+        onClick={onRestart}
+        disabled={disabled}
+        className="px-4 py-2 flex items-center gap-2 rounded-md group bg-red-600 hover:bg-red-800 transition-colors duration-200"
+      >
+        {showLabels && (
+          <span
+            className={`${textClass} text-indigo-100 group-hover:text-purple-200 font-medium`}
+          >
+            Restart
+          </span>
+        )}
+        <RestartIcon className="w-5 h-5 text-indigo-100" />
+      </button>
+
+      <button
+        onClick={onToggleSound}
+        className="flex items-center px-4 py-2 bg-green-600 hover:bg-green-800 rounded text-white"
+      >
+        {isSoundOn ? (
+          <div className="flex items-center gap-2">
+            {showLabels && (
+              <span
+                className={`${textClass} text-indigo-100 group-hover:text-purple-200 font-medium`}
+              >
+                Sounds on
+              </span>
+            )}
+            <SoundsOnIcons />
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            {showLabels && (
+              <span
+                className={`${textClass} text-indigo-100 group-hover:text-purple-200 font-medium`}
+              >
+                Sounds off
+              </span>
+            )}
+            <SoundsOffIcons />
+          </div>
+        )}
+      </button>
+    </>
+  )
+}

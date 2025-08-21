@@ -31,11 +31,20 @@ export const HeartDisplay: React.FC<{ score: number; player: player }> = ({
       <img
         key={i}
         src={isFull ? heartFull : heartEmpty}
-        alt="heart"
+        alt={isFull ? 'full heart' : 'empty heart'}
         className="h-[15px] w-[15px] mx-1"
       />
     )
   }
 
-  return <div className="flex flex-row-reverse">{hearts}</div>
+  return (
+    <div
+      aria-label={`Player ${player} score: ${
+        MAX_SCORE - score
+      } out of ${MAX_SCORE}`}
+      className="flex flex-row-reverse"
+    >
+      {hearts}
+    </div>
+  )
 }

@@ -5,6 +5,7 @@ import playerRightImg from '../assets/images/playerRight.png'
 import player3Img from '../assets/images/player3.png'
 import player4Img from '../assets/images/player4.png'
 import { useFocusTrap } from '../hooks/useFocuseTrap'
+import { useTextSize } from '../context/fontGlobal'
 
 interface MatchModalProps {
   show: boolean
@@ -28,6 +29,8 @@ export const MatchModal: React.FC<MatchModalProps> = ({
   playerRight,
   playerAliases,
 }) => {
+  const { textClass } = useTextSize()
+
   const modalRef = useRef<HTMLDivElement>(null)
   const firstFocusableRef = useRef<HTMLButtonElement>(null)
 
@@ -46,20 +49,26 @@ export const MatchModal: React.FC<MatchModalProps> = ({
       onClick={onClose}
     >
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="match-modal-title"
         ref={modalRef}
         className="bg-[#1f1f1f] rounded-xl p-8 flex flex-col items-center gap-6 relative border-4 border-white"
         onClick={(e) => e.stopPropagation()}
       >
+        <h2 id="match-modal-title" className="sr-only">
+          Match Preview
+        </h2>
         <div className="flex items-center gap-12">
           <div className="w-32 h-40 flex flex-col justify-center items-center">
             {playerLeft && (
               <>
                 <img
                   src={playerImages[playerLeft]}
-                  alt={playerLeft}
+                  alt={playerAliases[playerLeft]}
                   className="max-w-full max-h-full object-contain"
                 />
-                <p className="text-white text-center mt-2">
+                <p className={`${textClass} text-white text-center mt-2`}>
                   {playerAliases[playerLeft]}
                 </p>
               </>
@@ -73,10 +82,10 @@ export const MatchModal: React.FC<MatchModalProps> = ({
               <>
                 <img
                   src={playerImages[playerRight]}
-                  alt={playerRight}
+                  alt={playerAliases[playerRight]}
                   className="max-w-full max-h-full object-contain"
                 />
-                <p className="text-white text-center mt-2">
+                <p className={`${textClass} text-white text-center mt-2`}>
                   {playerAliases[playerRight]}
                 </p>
               </>
@@ -85,8 +94,9 @@ export const MatchModal: React.FC<MatchModalProps> = ({
         </div>
 
         <button
-          className="mt-4 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
+          className={`${textClass} mt-4 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg`}
           onClick={onClose}
+          aria-label="Start the round and close match preview"
         >
           Start the round
         </button>

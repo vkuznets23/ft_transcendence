@@ -19,7 +19,7 @@ export const getPlayerImage = (id: string | undefined) => {
     case 'player4':
       return player4
     default:
-      return player1 // fallback
+      return player1
   }
 }
 
@@ -62,7 +62,11 @@ export const PlayersDisplay: React.FC<PlayersDisplayProps> = ({
           <>
             <div data-testid="livesSector1" className="flex items-center gap-2">
               <img src={leftPlayerImg} alt="player1" className="h-[40px]" />
-              <HeartDisplay score={scoreLeft} player="left" />
+              <HeartDisplay
+                score={scoreLeft}
+                player="left"
+                aria-label={`${scoreLeft} lives remaining`}
+              />
             </div>
             <div>{children}</div>
           </>
@@ -70,7 +74,11 @@ export const PlayersDisplay: React.FC<PlayersDisplayProps> = ({
           <>
             <div>{children}</div>
             <div data-testid="livesSector2" className="flex items-center gap-2">
-              <HeartDisplay score={scoreRight} player="right" />
+              <HeartDisplay
+                score={scoreRight}
+                player="right"
+                aria-label={`${scoreRight} lives remaining`}
+              />
               <img
                 src={rightPlayerImg}
                 alt="player2 or AI"
@@ -95,7 +103,11 @@ export const PlayersDisplay: React.FC<PlayersDisplayProps> = ({
           data-testid="livesSector1"
           className="flex flex-col items-left gap-1"
         >
-          <HeartDisplay score={scoreLeft} player="left" />
+          <HeartDisplay
+            score={scoreLeft}
+            player="left"
+            aria-label={`${scoreLeft} lives remaining`}
+          />
         </div>
       </div>
 
@@ -106,7 +118,11 @@ export const PlayersDisplay: React.FC<PlayersDisplayProps> = ({
           data-testid="livesSector2"
           className="flex flex-col items-end gap-1"
         >
-          <HeartDisplay score={scoreRight} player="right" />
+          <HeartDisplay
+            score={scoreRight}
+            player="right"
+            aria-label={`${scoreRight} lives remaining`}
+          />
         </div>
         <img
           src={
