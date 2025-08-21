@@ -208,8 +208,6 @@ export function useGameState(canvasWidth: number, canvasHeight: number) {
     'player1' | 'player2' | 'player3' | 'player4' | undefined
   >(undefined)
 
-  // const currentPlayerA = currentMatch?.playerA
-  // const currentPlayerB = currentMatch?.playerB
   useEffect(() => {
     if (currentMatch) {
       setCurrentPlayerA(currentMatch.playerA ?? undefined)

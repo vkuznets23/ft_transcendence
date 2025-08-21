@@ -626,6 +626,7 @@ const PongGame = () => {
             setShowCasualGameModal(false)
           }}
           opponentType={opponentType}
+          playerAliases={playerAliases}
         />
       )}
       {showRoundResultModal &&

@@ -658,6 +658,7 @@ const VerticalPongGame: React.FC = () => {
             setShowCasualGameModal(false)
           }}
           opponentType={opponentType}
+          playerAliases={playerAliases}
         />
       )}
       {showRoundResultModal &&

@@ -1,5 +1,4 @@
 import { HeartDisplay } from './Heartdisplay'
-// import trophyIcon from '../assets/images/winner.png'
 import player1 from '../assets/images/playerLeft.png'
 import player2 from '../assets/images/playerRight.png'
 import player3 from '../assets/images/player3.png'

@@ -69,7 +69,6 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
   const modalRef = useRef<HTMLDivElement>(null)
   useFocusTrap(modalRef as React.RefObject<HTMLElement>, show)
 
-  // Fetch aliases when modal opens
   useEffect(() => {
     if (!show) return
 
@@ -77,19 +76,41 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
       try {
         // fetch current user
         const currentUserRes = await fetch('/DBs/currentUser.json')
-        if (!currentUserRes.ok) throw new Error('Failed to fetch current user')
         const currentUserData = await currentUserRes.json()
 
-        // other players
-        const playersRes = await fetch('/DBs/players.json')
-        if (!playersRes.ok) throw new Error('Failed to fetch players')
-        const playersData = await playersRes.json()
-
-        const aliasesObj: PlayerAliases = {
+        let aliasesObj: PlayerAliases = {
           player1: currentUserData.username || 'Player 1',
-          player2: playersData[0]?.username || 'Player 2',
-          player3: playersData[1]?.username || 'Player 3',
-          player4: playersData[2]?.username || 'Player 4',
+          player2: '',
+          player3: '',
+          player4: '',
+        }
+
+        if (isTournament === 'tournament') {
+          // берём троих оппонентов
+          const playersRes = await fetch('/DBs/players.json')
+          const playersData = await playersRes.json()
+
+          aliasesObj = {
+            ...aliasesObj,
+            player2: playersData[0]?.username || 'Player 2',
+            player3: playersData[1]?.username || 'Player 3',
+            player4: playersData[2]?.username || 'Player 4',
+          }
+        } else if (isTournament === 'CasualGame') {
+          if (opponentType === 'player') {
+            const playersRes = await fetch('/DBs/players.json')
+            const playersData = await playersRes.json()
+
+            aliasesObj = {
+              ...aliasesObj,
+              player2: playersData[0]?.username || 'Player 2',
+            }
+          } else if (opponentType === 'ai') {
+            aliasesObj = {
+              ...aliasesObj,
+              player2: 'AI Opponent',
+            }
+          }
         }
 
         setPlayerAliases(aliasesObj)
@@ -99,7 +120,7 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
     }
 
     fetchAliases()
-  }, [show, setPlayerAliases, playerAliases.player1])
+  }, [show, isTournament, opponentType, setPlayerAliases])
 
   if (!show) return null
 
@@ -165,6 +186,7 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
             </button>
           </div>
         </div>
+
         {/* Display aliases */}
         {isTournament === 'tournament' && (
           <div className="mb-6 grid grid-cols-2 gap-4 justify-items-center">
@@ -203,12 +225,13 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
                   opponentType === 'player' ? '' : 'opacity-40 hover:opacity-60'
                 } disabled:opacity-50`}
               >
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-4">
                   <img
                     src={player1}
                     alt="player1"
                     className="flex justify-start h-[40px]"
                   />
+
                   <img
                     src={player2}
                     alt="player1"
@@ -238,6 +261,11 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
                   />
                 </div>
               </button>
+            </div>
+            <div className="mt-2 text-white text-center text-sm">
+              {opponentType === 'player'
+                ? `Opponent: ${playerAliases.player2}`
+                : 'Opponent: AI'}
             </div>
           </div>
         )}

@@ -1,16 +1,19 @@
 import { useEffect, useRef } from 'react'
 import { getPlayerImage } from './PlayersDisplay'
 import { useFocusTrap } from '../hooks/useFocuseTrap'
+import { PlayerAliases } from '../types/types'
 
 type CasualGameMofalTypes = {
-  winner: 'player1' | 'player2' | 'playerAI' | null
+  winner: 'player1' | 'player2' | null
   onPlayAgain: () => void
   opponentType: 'ai' | 'player'
+  playerAliases: PlayerAliases
 }
 export const CasualGameModal = ({
   winner,
   onPlayAgain,
   opponentType,
+  playerAliases,
 }: CasualGameMofalTypes) => {
   const firstFocusableRef = useRef<HTMLButtonElement>(null)
   useEffect(() => {
@@ -24,10 +27,11 @@ export const CasualGameModal = ({
 
   if (!winner) return null
 
-  const normalizedWinner =
-    opponentType === 'ai' && winner === 'player2' ? 'playerAI' : winner
+  const displayName =
+    opponentType === 'ai' && winner === 'player2' ? 'AI' : playerAliases[winner]
 
-  const winnerImage = getPlayerImage(normalizedWinner)
+  const winnerImage = getPlayerImage(winner)
+
   return (
     <div
       role="dialog"
@@ -44,13 +48,13 @@ export const CasualGameModal = ({
           id="modal-title"
           className="w-full text-center text-2xl font-bold mb-4"
         >
-          🏁 Round winner: {normalizedWinner}
+          🏁 Round winner: {displayName}
         </h2>
 
         <div className="flex justify-center">
           <img
             src={winnerImage}
-            alt={`Winner is ${normalizedWinner}`}
+            alt={`Winner is ${displayName}`}
             className="w-24 h-24 object-cover"
           />
         </div>
