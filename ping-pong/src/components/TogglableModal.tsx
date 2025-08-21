@@ -69,6 +69,38 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
   const modalRef = useRef<HTMLDivElement>(null)
   useFocusTrap(modalRef as React.RefObject<HTMLElement>, show)
 
+  // Fetch aliases when modal opens
+  useEffect(() => {
+    if (!show) return
+
+    const fetchAliases = async () => {
+      try {
+        // fetch current user
+        const currentUserRes = await fetch('/DBs/currentUser.json')
+        if (!currentUserRes.ok) throw new Error('Failed to fetch current user')
+        const currentUserData = await currentUserRes.json()
+
+        // other players
+        const playersRes = await fetch('/DBs/players.json')
+        if (!playersRes.ok) throw new Error('Failed to fetch players')
+        const playersData = await playersRes.json()
+
+        const aliasesObj: PlayerAliases = {
+          player1: currentUserData.username || 'Player 1',
+          player2: playersData[0]?.username || 'Player 2',
+          player3: playersData[1]?.username || 'Player 3',
+          player4: playersData[2]?.username || 'Player 4',
+        }
+
+        setPlayerAliases(aliasesObj)
+      } catch (err) {
+        console.error(err)
+      }
+    }
+
+    fetchAliases()
+  }, [show, setPlayerAliases, playerAliases.player1])
+
   if (!show) return null
 
   return (
@@ -133,135 +165,23 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
             </button>
           </div>
         </div>
+        {/* Display aliases */}
         {isTournament === 'tournament' && (
-          <div className="space-y-4 mb-6">
-            <div className="flex items-center gap-4">
-              <img
-                src={player1}
-                alt="Player 1"
-                className="w-8 h-8 object-cover "
-              />
-              <div className="flex flex-col gap-1 flex-1">
-                <input
-                  type="text"
-                  value={playerAliases.player1}
-                  onChange={(e) =>
-                    setPlayerAliases({
-                      ...playerAliases,
-                      player1: e.target.value,
-                    })
-                  }
-                  placeholder="Alias for Player 1"
-                  className={`flex-1 px-3 py-2 rounded bg-[#2E2E2E] text-white focus:outline-none focus:ring-2 
-  ${
-    errors.player1
-      ? 'border border-red-500 focus:ring-red-500'
-      : 'focus:ring-yellow-400'
-  }`}
-                />
-                {errors.player1 && (
-                  <p className="text-red-500 text-xs text-right">
-                    {errors.player1}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div className="flex items-center gap-4">
-              <img
-                src={player2}
-                alt="Player 2"
-                className="w-8 h-8 object-cover "
-              />
-              <div className="flex flex-col gap-1 flex-1">
-                <input
-                  type="text"
-                  value={playerAliases.player2}
-                  onChange={(e) =>
-                    setPlayerAliases({
-                      ...playerAliases,
-                      player2: e.target.value,
-                    })
-                  }
-                  placeholder="Alias for Player 2"
-                  className={`flex-1 px-3 py-2 rounded bg-[#2E2E2E] text-white focus:outline-none focus:ring-2 
-  ${
-    errors.player2
-      ? 'border border-red-500 focus:ring-red-500'
-      : 'focus:ring-yellow-400'
-  }`}
-                />
-                {errors.player2 && (
-                  <p className="text-red-500 text-xs text-right">
-                    {errors.player2}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div className="flex items-center gap-4">
-              <img
-                src={player3}
-                alt="Player 3"
-                className="w-8 h-8 object-cover "
-              />
-              <div className="flex flex-col gap-1 flex-1">
-                <input
-                  type="text"
-                  value={playerAliases.player3}
-                  onChange={(e) =>
-                    setPlayerAliases({
-                      ...playerAliases,
-                      player3: e.target.value,
-                    })
-                  }
-                  placeholder="Alias for Player 3"
-                  className={`flex-1 px-3 py-2 rounded bg-[#2E2E2E] text-white focus:outline-none focus:ring-2 
-  ${
-    errors.player3
-      ? 'border border-red-500 focus:ring-red-500'
-      : 'focus:ring-yellow-400'
-  }`}
-                />
-                {errors.player3 && (
-                  <p className="text-red-500 text-xs mt-0 text-right">
-                    {errors.player3}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div className="flex items-center gap-4 ">
-              <img
-                src={player4}
-                alt="Player 4"
-                className="w-8 h-8 object-cover "
-              />
-              <div className="flex flex-col gap-1 flex-1">
-                <input
-                  type="text"
-                  value={playerAliases.player4}
-                  onChange={(e) =>
-                    setPlayerAliases({
-                      ...playerAliases,
-                      player4: e.target.value,
-                    })
-                  }
-                  placeholder="Alias for Player 4"
-                  className={`flex-1 px-3 py-2 rounded bg-[#2E2E2E] text-white focus:outline-none focus:ring-2 
-  ${
-    errors.player4
-      ? 'border border-red-500 focus:ring-red-500'
-      : 'focus:ring-yellow-400'
-  }`}
-                />
-                {errors.player4 && (
-                  <p className="text-red-500 text-xs mt-0  mb-0 text-right">
-                    {errors.player4}
-                  </p>
-                )}
-              </div>
-            </div>
+          <div className="mb-6 grid grid-cols-2 gap-4 justify-items-center">
+            {[1, 2, 3, 4].map((n) => {
+              const imgSrc = [player1, player2, player3, player4][n - 1]
+              const alias = playerAliases[`player${n}` as keyof PlayerAliases]
+              return (
+                <div key={n} className="flex flex-col items-center gap-2">
+                  <img
+                    src={imgSrc}
+                    alt={`Player ${n}`}
+                    className="w-10 h-10 object-cover"
+                  />
+                  <span className="text-white font-medium">{alias}</span>
+                </div>
+              )
+            })}
           </div>
         )}
 

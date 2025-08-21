@@ -32,6 +32,7 @@ export function useGameState(canvasWidth: number, canvasHeight: number) {
     player3: '',
     player4: '',
   })
+
   const [finalStandings, setFinalStandings] = useState<
     Record<'first' | 'second' | 'third' | 'fourth', PlayerID | null>
   >({
