@@ -49,7 +49,6 @@ const VerticalPongGame: React.FC = () => {
 
   // Global Game State
   const {
-    errors,
     setErrors,
     playerAliases,
     setPlayerAliases,
@@ -607,7 +606,6 @@ const VerticalPongGame: React.FC = () => {
           setIsTournament={setGameMode}
           playerAliases={playerAliases}
           setPlayerAliases={setPlayerAliases}
-          errors={errors}
         />
 
         <canvas
@@ -658,6 +656,7 @@ const VerticalPongGame: React.FC = () => {
             setShowCasualGameModal(false)
           }}
           opponentType={opponentType}
+          playerAliases={playerAliases}
         />
       )}
       {showRoundResultModal &&

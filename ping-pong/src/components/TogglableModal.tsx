@@ -10,6 +10,7 @@ import type {
   IsTournament,
 } from '../types/types'
 import { useFocusTrap } from '../hooks/useFocuseTrap'
+import { useTextSize } from '../context/fontGlobal'
 
 type PaddleSizeOption = 'small' | 'medium' | 'large'
 type OpponentType = 'player' | 'ai'
@@ -37,7 +38,6 @@ interface GameSettingsModalProps {
   setIsTournament: (value: IsTournament) => void
   playerAliases: PlayerAliases
   setPlayerAliases: (value: PlayerAliases) => void
-  errors: Partial<PlayerAliases>
 }
 
 const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
@@ -57,8 +57,36 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
   setIsTournament,
   playerAliases,
   setPlayerAliases,
-  errors,
 }) => {
+  const { textSize, textClass } = useTextSize()
+  const TEXT_STYLES = {
+    labels: {
+      small: 'font-medium text-white text-sm',
+      medium: 'font-medium text-white text-base',
+      large: 'font-medium text-white text-lg',
+    },
+    opponent: {
+      small: 'text-xs',
+      medium: 'text-sm',
+      large: 'text-base',
+    },
+    options: {
+      small: 'text-white text-sm',
+      medium: 'text-white text-base',
+      large: 'text-white text-lg',
+    },
+    modalTitle: {
+      small: 'sr-only text-sm font-bold',
+      medium: 'sr-only text-base font-bold',
+      large: 'sr-only text-xl font-bold',
+    },
+    modalDescription: {
+      small: 'sr-only text-sm',
+      medium: 'sr-only text-base',
+      large: 'sr-only text-lg',
+    },
+  }
+
   const firstFocusableRef = useRef<HTMLButtonElement>(null)
   useEffect(() => {
     if (show && firstFocusableRef.current) {
@@ -68,6 +96,59 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
 
   const modalRef = useRef<HTMLDivElement>(null)
   useFocusTrap(modalRef as React.RefObject<HTMLElement>, show)
+
+  useEffect(() => {
+    if (!show) return
+
+    const fetchAliases = async () => {
+      try {
+        // fetch current user
+        const currentUserRes = await fetch('/DBs/currentUser.json')
+        const currentUserData = await currentUserRes.json()
+
+        let aliasesObj: PlayerAliases = {
+          player1: currentUserData.username || 'Player 1',
+          player2: '',
+          player3: '',
+          player4: '',
+        }
+
+        if (isTournament === 'tournament') {
+          // берём троих оппонентов
+          const playersRes = await fetch('/DBs/players.json')
+          const playersData = await playersRes.json()
+
+          aliasesObj = {
+            ...aliasesObj,
+            player2: playersData[0]?.username || 'Player 2',
+            player3: playersData[1]?.username || 'Player 3',
+            player4: playersData[2]?.username || 'Player 4',
+          }
+        } else if (isTournament === 'CasualGame') {
+          if (opponentType === 'player') {
+            const playersRes = await fetch('/DBs/players.json')
+            const playersData = await playersRes.json()
+
+            aliasesObj = {
+              ...aliasesObj,
+              player2: playersData[0]?.username || 'Player 2',
+            }
+          } else if (opponentType === 'ai') {
+            aliasesObj = {
+              ...aliasesObj,
+              player2: 'AI Opponent',
+            }
+          }
+        }
+
+        setPlayerAliases(aliasesObj)
+      } catch (err) {
+        console.error(err)
+      }
+    }
+
+    fetchAliases()
+  }, [show, isTournament, opponentType, setPlayerAliases])
 
   if (!show) return null
 
@@ -80,10 +161,13 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
       aria-describedby="modal-desc"
       className="fixed inset-0 bg-black bg-opacity-90 flex justify-center items-center z-50"
     >
-      <h2 id="modal-title" className="sr-only">
+      <h2 id="modal-title" className={`${TEXT_STYLES.modalTitle[textSize]}`}>
         Game Settings
       </h2>
-      <p id="modal-desc" className="sr-only">
+      <p
+        id="modal-desc"
+        className={`${TEXT_STYLES.modalDescription[textSize]}`}
+      >
         Set your game preferences, such as paddle size, difficulty, and opponent
         type.
       </p>
@@ -97,7 +181,7 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
           >
             <span
               id="tournament-label"
-              className={`font-medium text-white min-w-[140px] text-left`}
+              className={`${TEXT_STYLES.labels[textSize]}  text-white min-w-[140px] text-left`}
             >
               Play tournament?
             </span>
@@ -107,7 +191,9 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
               role="radio"
               aria-checked={isTournament === 'CasualGame'}
               onClick={() => setIsTournament('CasualGame')}
-              className={`px-6 py-2 rounded-lg border-2 font-semibold border-white text-white transition-opacity duration-300
+              className={`${
+                TEXT_STYLES.options[textSize]
+              } px-6 py-2 rounded-lg border-2 font-semibold border-white text-white transition-opacity duration-300
     ${
       isTournament === 'CasualGame'
         ? 'opacity-100'
@@ -121,7 +207,9 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
               role="radio"
               aria-checked={isTournament === 'tournament'}
               onClick={() => setIsTournament('tournament')}
-              className={`px-6 py-2 rounded-lg border-2 font-semibold border-white text-white transition-opacity duration-300
+              className={`${
+                TEXT_STYLES.options[textSize]
+              } px-6 py-2 rounded-lg border-2 font-semibold border-white text-white transition-opacity duration-300
     ${
       isTournament === 'tournament'
         ? 'opacity-100'
@@ -133,135 +221,27 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
             </button>
           </div>
         </div>
+
+        {/* Display aliases */}
         {isTournament === 'tournament' && (
-          <div className="space-y-4 mb-6">
-            <div className="flex items-center gap-4">
-              <img
-                src={player1}
-                alt="Player 1"
-                className="w-8 h-8 object-cover "
-              />
-              <div className="flex flex-col gap-1 flex-1">
-                <input
-                  type="text"
-                  value={playerAliases.player1}
-                  onChange={(e) =>
-                    setPlayerAliases({
-                      ...playerAliases,
-                      player1: e.target.value,
-                    })
-                  }
-                  placeholder="Alias for Player 1"
-                  className={`flex-1 px-3 py-2 rounded bg-[#2E2E2E] text-white focus:outline-none focus:ring-2 
-  ${
-    errors.player1
-      ? 'border border-red-500 focus:ring-red-500'
-      : 'focus:ring-yellow-400'
-  }`}
-                />
-                {errors.player1 && (
-                  <p className="text-red-500 text-xs text-right">
-                    {errors.player1}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div className="flex items-center gap-4">
-              <img
-                src={player2}
-                alt="Player 2"
-                className="w-8 h-8 object-cover "
-              />
-              <div className="flex flex-col gap-1 flex-1">
-                <input
-                  type="text"
-                  value={playerAliases.player2}
-                  onChange={(e) =>
-                    setPlayerAliases({
-                      ...playerAliases,
-                      player2: e.target.value,
-                    })
-                  }
-                  placeholder="Alias for Player 2"
-                  className={`flex-1 px-3 py-2 rounded bg-[#2E2E2E] text-white focus:outline-none focus:ring-2 
-  ${
-    errors.player2
-      ? 'border border-red-500 focus:ring-red-500'
-      : 'focus:ring-yellow-400'
-  }`}
-                />
-                {errors.player2 && (
-                  <p className="text-red-500 text-xs text-right">
-                    {errors.player2}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div className="flex items-center gap-4">
-              <img
-                src={player3}
-                alt="Player 3"
-                className="w-8 h-8 object-cover "
-              />
-              <div className="flex flex-col gap-1 flex-1">
-                <input
-                  type="text"
-                  value={playerAliases.player3}
-                  onChange={(e) =>
-                    setPlayerAliases({
-                      ...playerAliases,
-                      player3: e.target.value,
-                    })
-                  }
-                  placeholder="Alias for Player 3"
-                  className={`flex-1 px-3 py-2 rounded bg-[#2E2E2E] text-white focus:outline-none focus:ring-2 
-  ${
-    errors.player3
-      ? 'border border-red-500 focus:ring-red-500'
-      : 'focus:ring-yellow-400'
-  }`}
-                />
-                {errors.player3 && (
-                  <p className="text-red-500 text-xs mt-0 text-right">
-                    {errors.player3}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div className="flex items-center gap-4 ">
-              <img
-                src={player4}
-                alt="Player 4"
-                className="w-8 h-8 object-cover "
-              />
-              <div className="flex flex-col gap-1 flex-1">
-                <input
-                  type="text"
-                  value={playerAliases.player4}
-                  onChange={(e) =>
-                    setPlayerAliases({
-                      ...playerAliases,
-                      player4: e.target.value,
-                    })
-                  }
-                  placeholder="Alias for Player 4"
-                  className={`flex-1 px-3 py-2 rounded bg-[#2E2E2E] text-white focus:outline-none focus:ring-2 
-  ${
-    errors.player4
-      ? 'border border-red-500 focus:ring-red-500'
-      : 'focus:ring-yellow-400'
-  }`}
-                />
-                {errors.player4 && (
-                  <p className="text-red-500 text-xs mt-0  mb-0 text-right">
-                    {errors.player4}
-                  </p>
-                )}
-              </div>
-            </div>
+          <div className="mb-6 grid grid-cols-2 gap-4 justify-items-center pointer-events-none">
+            {[1, 2, 3, 4].map((n) => {
+              const imgSrc = [player1, player2, player3, player4][n - 1]
+              const alias = playerAliases[`player${n}` as keyof PlayerAliases]
+              return (
+                <div
+                  key={n}
+                  className="flex flex-col items-center gap-2 pointer-events-auto"
+                >
+                  <img
+                    src={imgSrc}
+                    alt={`Player ${n}`}
+                    className="w-10 h-10 object-cover"
+                  />
+                  <span className="text-white font-medium">{alias}</span>
+                </div>
+              )
+            })}
           </div>
         )}
 
@@ -283,15 +263,16 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
                   opponentType === 'player' ? '' : 'opacity-40 hover:opacity-60'
                 } disabled:opacity-50`}
               >
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-4">
                   <img
                     src={player1}
-                    alt="player1"
+                    alt={`Avatar of ${playerAliases.player1}`}
                     className="flex justify-start h-[40px]"
                   />
+
                   <img
                     src={player2}
-                    alt="player1"
+                    alt={`Avatar of ${playerAliases.player2}`}
                     className="flex justify-start h-[40px]"
                   />
                 </div>
@@ -319,6 +300,13 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
                 </div>
               </button>
             </div>
+            <div
+              className={` ${TEXT_STYLES.opponent[textSize]} mt-2 text-white text-center `}
+            >
+              {opponentType === 'player'
+                ? `Opponent: ${playerAliases.player2}`
+                : 'Opponent: AI'}
+            </div>
           </div>
         )}
 
@@ -327,7 +315,7 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
           <div className="mb-6 flex items-center justify-between gap-4">
             <label
               htmlFor="ai-difficulty-select"
-              className="font-medium text-white min-w-[140px] text-left"
+              className={`${TEXT_STYLES.labels[textSize]} text-white min-w-[140px] text-left`}
             >
               AI Intelligence:
             </label>
@@ -338,7 +326,7 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
                 onAIDifficultyChange(e.target.value as AIDifficultyOption)
               }
               disabled={isRunning}
-              className="w-full px-3 py-2 bg-black text-white border border-white rounded-md appearance-none focus:outline-none focus:ring-2 focus:ring-white disabled:opacity-50"
+              className={` ${TEXT_STYLES.options[textSize]} w-full px-3 py-2 bg-black text-white border border-white rounded-md appearance-none focus:outline-none focus:ring-2 focus:ring-white disabled:opacity-50`}
             >
               <option value="easy">404 IQ Not Found</option>
               <option value="hard">Gigabrain</option>
@@ -350,7 +338,7 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
         <div className="mb-6 flex items-center justify-between gap-4">
           <label
             htmlFor="paddle-size"
-            className="font-medium text-white min-w-[140px] text-left"
+            className={`${TEXT_STYLES.labels[textSize]} text-white min-w-[140px] text-left`}
           >
             Paddle size:
           </label>
@@ -361,7 +349,7 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
               onPaddleSizeChange(e.target.value as PaddleSizeOption)
             }
             disabled={isRunning}
-            className="w-full px-3 py-2 bg-black text-white border border-white rounded-md appearance-none focus:outline-none focus:ring-2 focus:ring-white disabled:opacity-50"
+            className={` ${TEXT_STYLES.options[textSize]} w-full px-3 py-2 bg-black text-white border border-white rounded-md appearance-none focus:outline-none focus:ring-2 focus:ring-white disabled:opacity-50`}
           >
             <option value="small">Small</option>
             <option value="medium">Medium</option>
@@ -373,7 +361,7 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
         <div className="mb-6 flex items-center justify-between gap-4">
           <label
             htmlFor="obstacle-select"
-            className="font-medium text-white min-w-[140px] text-left"
+            className={`${TEXT_STYLES.labels[textSize]} text-white min-w-[140px] text-left`}
           >
             Obstacle:
           </label>
@@ -384,7 +372,7 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
               onDifficultyChange(e.target.value as DifficultyOption)
             }
             disabled={isRunning}
-            className="w-full px-3 py-2 bg-black text-white border border-white rounded-md appearance-none focus:outline-none focus:ring-2 focus:ring-white disabled:opacity-50"
+            className={` ${TEXT_STYLES.options[textSize]} w-full px-3 py-2 bg-black text-white border border-white rounded-md appearance-none focus:outline-none focus:ring-2 focus:ring-white disabled:opacity-50`}
           >
             <option value="easy">Clear Sky</option>
             <option value="medium">Static Trouble</option>
@@ -396,7 +384,7 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
         <button
           onClick={onStart}
           disabled={isRunning}
-          className="mt-4 w-full px-6 py-2 bg-yellow-400 text-black font-semibold  rounded-md hover:bg-opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+          className={`${textClass} mt-4 w-full px-6 py-2 bg-yellow-400 text-black font-semibold  rounded-md hover:bg-opacity-90 disabled:opacity-50 disabled:cursor-not-allowed`}
         >
           {buttonText}
         </button>

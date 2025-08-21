@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { PlayerID } from '../types/types'
 import { getPlayerImage } from './PlayersDisplay'
 import { useFocusTrap } from '../hooks/useFocuseTrap'
+import { useTextSize } from '../context/fontGlobal'
 
 export const TournamentWinnerModal = ({
   tournamentWinner,
@@ -19,6 +20,37 @@ export const TournamentWinnerModal = ({
   onPlayAgain: () => void
   playerAliases: Record<string, string>
 }) => {
+  const { textSize, textClass } = useTextSize()
+  const uniqueHeadingClass = {
+    small: 'text-xl',
+    medium: 'text-3xl',
+    large: 'text-5xl',
+  }[textSize]
+
+  const unique1stClass = {
+    small: 'text-xl',
+    medium: 'text-2xl',
+    large: 'text-3xl',
+  }[textSize]
+
+  const unique2ndClass = {
+    small: 'text-lg',
+    medium: 'text-xl',
+    large: 'text-2xl',
+  }[textSize]
+
+  const unique3dClass = {
+    small: 'text-sm',
+    medium: 'text-lg',
+    large: 'text-xl',
+  }[textSize]
+
+  const unique4thClass = {
+    small: 'text-xs',
+    medium: 'text-base',
+    large: 'text-sm',
+  }[textSize]
+
   const firstFocusableRef = useRef<HTMLButtonElement>(null)
   useEffect(() => {
     if (tournamentWinner && firstFocusableRef.current) {
@@ -65,25 +97,46 @@ export const TournamentWinnerModal = ({
     >
       <div
         ref={modalRef}
+        tabIndex={-1}
         className="bg-gray-900 border-4 border-white-400 rounded-lg p-8 w-100 text-center text-white space-y-6"
       >
         <h2
           id="tournament-modal-title"
-          className="w-full text-center text-3xl font-bold mb-4"
+          className={`${uniqueHeadingClass} w-full text-center font-bold mb-4`}
         >
           🏆 Tournament results
         </h2>
 
         <ul aria-label="Tournament final standings">
-          {renderPlayer('1st place', finalStandings.first, '🥇', 'text-2xl')}
-          {renderPlayer('2nd place', finalStandings.second, '🥈', 'text-xl')}
-          {renderPlayer('3rd place', finalStandings.third, '🥉', 'text-lg')}
-          {renderPlayer('4th place', finalStandings.fourth, '🎖️', 'text-base')}
+          {renderPlayer(
+            '1st place',
+            finalStandings.first,
+            '🥇',
+            `${unique1stClass}`
+          )}
+          {renderPlayer(
+            '2nd place',
+            finalStandings.second,
+            '🥈',
+            `${unique2ndClass}`
+          )}
+          {renderPlayer(
+            '3rd place',
+            finalStandings.third,
+            '🥉',
+            `${unique3dClass}`
+          )}
+          {renderPlayer(
+            '4th place',
+            finalStandings.fourth,
+            '🎖️',
+            `${unique4thClass}`
+          )}
         </ul>
         <button
           ref={firstFocusableRef}
           onClick={onPlayAgain}
-          className="bg-yellow-400 w-full text-gray-900 font-semibold px-4 py-2 rounded hover:bg-yellow-300 transition"
+          className={`${textClass} bg-yellow-400 w-full text-gray-900 font-semibold px-4 py-2 rounded hover:bg-yellow-300 transition`}
           aria-label="Play tournament again"
         >
           Play again

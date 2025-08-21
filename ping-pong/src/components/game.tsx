@@ -34,14 +34,11 @@ import { getRoundLabel } from '../utils/getRoundLabel'
 
 //localStorage
 import { loadStats, saveStats } from '../utils/statistic'
-import { validateAliases } from '../utils/validateAliases'
 import { MatchModal } from './MatchModal'
 
 const PongGame = () => {
   // Global Game State
   const {
-    errors,
-    setErrors,
     playerAliases,
     setPlayerAliases,
     setCurrentPlayerA,
@@ -298,15 +295,7 @@ const PongGame = () => {
   })
 
   const startGameFromModal = () => {
-    if (gameMode === 'tournament') {
-      const validationErrors = validateAliases(playerAliases)
-      setErrors(validationErrors)
-      if (Object.keys(validationErrors).length === 0) {
-        initializeGame(gameMode)
-      }
-    } else {
-      initializeGame(gameMode)
-    }
+    initializeGame(gameMode)
   }
 
   // Update positions of all game elements
@@ -613,7 +602,6 @@ const PongGame = () => {
         setIsTournament={setGameMode}
         playerAliases={playerAliases}
         setPlayerAliases={setPlayerAliases}
-        errors={errors}
       />
 
       {showPauseModal && <PauseModal onContinue={handleContinueFromPause} />}
@@ -626,6 +614,7 @@ const PongGame = () => {
             setShowCasualGameModal(false)
           }}
           opponentType={opponentType}
+          playerAliases={playerAliases}
         />
       )}
       {showRoundResultModal &&
