@@ -63,7 +63,6 @@ export const RoundResultModal = ({
         </div>
         <button
           ref={firstFocusableRef}
-          type="button"
           aria-label={`Proceed to next round: ${roundLabel}`}
           onClick={onNextRound}
           className={`${textClass} w-full bg-yellow-400 text-gray-900 font-semibold px-4 py-2 rounded hover:bg-yellow-300 transition`}
