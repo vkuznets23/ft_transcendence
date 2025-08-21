@@ -10,6 +10,7 @@ import type {
   IsTournament,
 } from '../types/types'
 import { useFocusTrap } from '../hooks/useFocuseTrap'
+import { useTextSize } from '../context/fontGlobal'
 
 type PaddleSizeOption = 'small' | 'medium' | 'large'
 type OpponentType = 'player' | 'ai'
@@ -57,6 +58,35 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
   playerAliases,
   setPlayerAliases,
 }) => {
+  const { textSize, textClass } = useTextSize()
+  const TEXT_STYLES = {
+    labels: {
+      small: 'font-medium text-white text-sm',
+      medium: 'font-medium text-white text-base',
+      large: 'font-medium text-white text-lg',
+    },
+    opponent: {
+      small: 'text-xs',
+      medium: 'text-sm',
+      large: 'text-base',
+    },
+    options: {
+      small: 'text-white text-sm',
+      medium: 'text-white text-base',
+      large: 'text-white text-lg',
+    },
+    modalTitle: {
+      small: 'sr-only text-sm font-bold',
+      medium: 'sr-only text-base font-bold',
+      large: 'sr-only text-xl font-bold',
+    },
+    modalDescription: {
+      small: 'sr-only text-sm',
+      medium: 'sr-only text-base',
+      large: 'sr-only text-lg',
+    },
+  }
+
   const firstFocusableRef = useRef<HTMLButtonElement>(null)
   useEffect(() => {
     if (show && firstFocusableRef.current) {
@@ -131,10 +161,13 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
       aria-describedby="modal-desc"
       className="fixed inset-0 bg-black bg-opacity-90 flex justify-center items-center z-50"
     >
-      <h2 id="modal-title" className="sr-only">
+      <h2 id="modal-title" className={`${TEXT_STYLES.modalTitle[textSize]}`}>
         Game Settings
       </h2>
-      <p id="modal-desc" className="sr-only">
+      <p
+        id="modal-desc"
+        className={`${TEXT_STYLES.modalDescription[textSize]}`}
+      >
         Set your game preferences, such as paddle size, difficulty, and opponent
         type.
       </p>
@@ -148,7 +181,7 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
           >
             <span
               id="tournament-label"
-              className={`font-medium text-white min-w-[140px] text-left`}
+              className={`${TEXT_STYLES.labels[textSize]}  text-white min-w-[140px] text-left`}
             >
               Play tournament?
             </span>
@@ -158,7 +191,9 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
               role="radio"
               aria-checked={isTournament === 'CasualGame'}
               onClick={() => setIsTournament('CasualGame')}
-              className={`px-6 py-2 rounded-lg border-2 font-semibold border-white text-white transition-opacity duration-300
+              className={`${
+                TEXT_STYLES.options[textSize]
+              } px-6 py-2 rounded-lg border-2 font-semibold border-white text-white transition-opacity duration-300
     ${
       isTournament === 'CasualGame'
         ? 'opacity-100'
@@ -172,7 +207,9 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
               role="radio"
               aria-checked={isTournament === 'tournament'}
               onClick={() => setIsTournament('tournament')}
-              className={`px-6 py-2 rounded-lg border-2 font-semibold border-white text-white transition-opacity duration-300
+              className={`${
+                TEXT_STYLES.options[textSize]
+              } px-6 py-2 rounded-lg border-2 font-semibold border-white text-white transition-opacity duration-300
     ${
       isTournament === 'tournament'
         ? 'opacity-100'
@@ -229,13 +266,13 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
                 <div className="flex items-center gap-4">
                   <img
                     src={player1}
-                    alt="player1"
+                    alt={`Avatar of ${playerAliases.player1}`}
                     className="flex justify-start h-[40px]"
                   />
 
                   <img
                     src={player2}
-                    alt="player1"
+                    alt={`Avatar of ${playerAliases.player2}`}
                     className="flex justify-start h-[40px]"
                   />
                 </div>
@@ -263,7 +300,9 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
                 </div>
               </button>
             </div>
-            <div className="mt-2 text-white text-center text-sm">
+            <div
+              className={` ${TEXT_STYLES.opponent[textSize]} mt-2 text-white text-center `}
+            >
               {opponentType === 'player'
                 ? `Opponent: ${playerAliases.player2}`
                 : 'Opponent: AI'}
@@ -276,7 +315,7 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
           <div className="mb-6 flex items-center justify-between gap-4">
             <label
               htmlFor="ai-difficulty-select"
-              className="font-medium text-white min-w-[140px] text-left"
+              className={`${TEXT_STYLES.labels[textSize]} text-white min-w-[140px] text-left`}
             >
               AI Intelligence:
             </label>
@@ -287,7 +326,7 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
                 onAIDifficultyChange(e.target.value as AIDifficultyOption)
               }
               disabled={isRunning}
-              className="w-full px-3 py-2 bg-black text-white border border-white rounded-md appearance-none focus:outline-none focus:ring-2 focus:ring-white disabled:opacity-50"
+              className={` ${TEXT_STYLES.options[textSize]} w-full px-3 py-2 bg-black text-white border border-white rounded-md appearance-none focus:outline-none focus:ring-2 focus:ring-white disabled:opacity-50`}
             >
               <option value="easy">404 IQ Not Found</option>
               <option value="hard">Gigabrain</option>
@@ -299,7 +338,7 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
         <div className="mb-6 flex items-center justify-between gap-4">
           <label
             htmlFor="paddle-size"
-            className="font-medium text-white min-w-[140px] text-left"
+            className={`${TEXT_STYLES.labels[textSize]} text-white min-w-[140px] text-left`}
           >
             Paddle size:
           </label>
@@ -310,7 +349,7 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
               onPaddleSizeChange(e.target.value as PaddleSizeOption)
             }
             disabled={isRunning}
-            className="w-full px-3 py-2 bg-black text-white border border-white rounded-md appearance-none focus:outline-none focus:ring-2 focus:ring-white disabled:opacity-50"
+            className={` ${TEXT_STYLES.options[textSize]} w-full px-3 py-2 bg-black text-white border border-white rounded-md appearance-none focus:outline-none focus:ring-2 focus:ring-white disabled:opacity-50`}
           >
             <option value="small">Small</option>
             <option value="medium">Medium</option>
@@ -322,7 +361,7 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
         <div className="mb-6 flex items-center justify-between gap-4">
           <label
             htmlFor="obstacle-select"
-            className="font-medium text-white min-w-[140px] text-left"
+            className={`${TEXT_STYLES.labels[textSize]} text-white min-w-[140px] text-left`}
           >
             Obstacle:
           </label>
@@ -333,7 +372,7 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
               onDifficultyChange(e.target.value as DifficultyOption)
             }
             disabled={isRunning}
-            className="w-full px-3 py-2 bg-black text-white border border-white rounded-md appearance-none focus:outline-none focus:ring-2 focus:ring-white disabled:opacity-50"
+            className={` ${TEXT_STYLES.options[textSize]} w-full px-3 py-2 bg-black text-white border border-white rounded-md appearance-none focus:outline-none focus:ring-2 focus:ring-white disabled:opacity-50`}
           >
             <option value="easy">Clear Sky</option>
             <option value="medium">Static Trouble</option>
@@ -345,7 +384,7 @@ const GameSettingsModal: React.FC<GameSettingsModalProps> = ({
         <button
           onClick={onStart}
           disabled={isRunning}
-          className="mt-4 w-full px-6 py-2 bg-yellow-400 text-black font-semibold  rounded-md hover:bg-opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+          className={`${textClass} mt-4 w-full px-6 py-2 bg-yellow-400 text-black font-semibold  rounded-md hover:bg-opacity-90 disabled:opacity-50 disabled:cursor-not-allowed`}
         >
           {buttonText}
         </button>
